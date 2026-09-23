@@ -19,6 +19,7 @@ import java.util.UUID;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final PronounceService    pronounceService;
 
     public CustomerPageResponse search(Long companyId, String name, String country, String orderBy) {
         String normalizedName    = isBlank(name)    ? null : name.trim();
@@ -51,17 +52,24 @@ public class CustomerService {
     }
 
     /**
-     * Returns the name of the customer with the given ID, or throws 404 if not found.
+     * Returns the customer with the given PK, or throws 404 if not found.
      */
-    public String getCustomerName(UUID customerPk) {
+    public Customer getCustomer(UUID customerPk) {
         return customerRepository.findById(customerPk)
-                .map(Customer::getName)
                 .orElseThrow(() -> {
                     log.warn("Customer not found for pronounce: customerPk={}", customerPk);
                     return new ResponseStatusException(
                             HttpStatus.NOT_FOUND,
                             "Customer not found: " + customerPk);
                 });
+    }
+
+    /**
+     * Looks up the customer by PK and delegates synthesis to PronounceService.
+     */
+    public byte[] pronounce(UUID customerPk, String languageCode) {
+        Customer customer = getCustomer(customerPk);
+        return pronounceService.synthesize(customer.getName(), customer.getCountry(), languageCode);
     }
 
     private boolean isBlank(String value) {

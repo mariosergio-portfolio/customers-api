@@ -4,7 +4,6 @@ import com.planet.customersapi.config.GlobalExceptionHandler;
 import com.planet.customersapi.dto.CustomerPageResponse;
 import com.planet.customersapi.service.CustomerService;
 import com.planet.customersapi.service.MockBlipService;
-import com.planet.customersapi.service.PronounceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,15 +31,12 @@ import java.util.UUID;
 public class CustomerController {
 
     private final CustomerService customerService;
-
     private final MockBlipService mockBlipService;
-
-    private final PronounceService pronounceService;
 
     @Operation(
             summary = "Search customers",
             description = """
-                    Returns all customers for the given company and domain.
+                    Returns all customers for the given company.
                     Optional query parameters `name` and `country` perform case-insensitive
                     partial-text (LIKE) filtering. When both are provided they are combined with AND.
                     """
@@ -66,15 +62,12 @@ public class CustomerController {
             @Parameter(description = "Sort order: 'id' (default) or 'name'")
             @RequestParam(value = "orderBy", required = false, defaultValue = "id") String orderBy) {
 
-        CustomerPageResponse response = customerService.search(companyId, name, country, orderBy);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(customerService.search(companyId, name, country, orderBy));
     }
-
-
 
     @Operation(
             summary = "Pronounce customer name",
-            description = "Calls AWS Polly Neural TTS to synthesize the customer's name and returns MP3 audio."
+            description = "Calls AWS Polly Neural TTS to synthesize the customer's name and country, returning MP3 audio."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "MP3 audio bytes",
@@ -85,15 +78,14 @@ public class CustomerController {
                     content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class)))
     })
     @GetMapping("/customers/{customerPk}/pronounce")
-    public ResponseEntity<byte[]> pronounceCustomerName(
+    public ResponseEntity<byte[]> pronounce(
             @Parameter(description = "Customer PK", required = true)
             @PathVariable("customerPk") @NotNull UUID customerPk,
 
             @Parameter(description = "BCP-47 language code for Polly TTS (e.g. en-US, pt-BR). Defaults to en-US.")
             @RequestParam(value = "language", required = false, defaultValue = "en-US") String language) {
 
-        String name = customerService.getCustomerName(customerPk);
-        byte[] mp3  = pronounceService.synthesize(name, language);
+        byte[] mp3 = customerService.pronounce(customerPk, language);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -103,18 +95,16 @@ public class CustomerController {
                 .body(mp3);
     }
 
-
     @GetMapping("/customers/{customerPk}/blip")
     public ResponseEntity<byte[]> blip(
             @Parameter(description = "Customer PK", required = true)
             @PathVariable("customerPk") @NotNull UUID customerPk) {
 
-        String name = customerService.getCustomerName(customerPk);
-        byte[] wav  = mockBlipService.generateWav(name);
+        byte[] wav = mockBlipService.generateWav(customerService.getCustomer(customerPk).getName());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + customerPk + "-pronounce.wav\"")
+                        "inline; filename=\"" + customerPk + "-blip.wav\"")
                 .contentType(MediaType.parseMediaType("audio/wav"))
                 .contentLength(wav.length)
                 .body(wav);
