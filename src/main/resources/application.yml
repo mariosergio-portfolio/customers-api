@@ -30,4 +30,14 @@ server:
 
 logging:
   level:
+    root: DEBUG
     com.planet: DEBUG
+
+aws:
+  polly:
+    region: ${AWS_REGION:us-east-1}
+    voice-id: ${AWS_POLLY_VOICE_ID:Joanna}
+    # Leave blank in production — IAM role / env-var credentials chain is used instead.
+    # Set only for local development when no AWS profile is configured.
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}

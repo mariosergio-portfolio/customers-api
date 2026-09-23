@@ -20,6 +20,7 @@
     <properties>
         <java.version>25</java.version>
         <springdoc.version>2.8.9</springdoc.version>
+        <aws.sdk.version>2.29.52</aws.sdk.version>
     </properties>
 
     <dependencies>
@@ -67,6 +68,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- AWS SDK v2 – Polly TTS -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>polly</artifactId>
+            <version>${aws.sdk.version}</version>
         </dependency>
     </dependencies>
 

@@ -3,6 +3,7 @@ package com.planet.customersapi.controller;
 import com.planet.customersapi.config.GlobalExceptionHandler;
 import com.planet.customersapi.dto.CustomerPageResponse;
 import com.planet.customersapi.service.CustomerService;
+import com.planet.customersapi.service.MockBlipService;
 import com.planet.customersapi.service.PronounceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Tag(name = "Customers", description = "Endpoints for querying customers with optional partial-text filters")
 @RestController
 @RequestMapping("/api")
@@ -29,6 +32,9 @@ import org.springframework.web.bind.annotation.*;
 public class CustomerController {
 
     private final CustomerService customerService;
+
+    private final MockBlipService mockBlipService;
+
     private final PronounceService pronounceService;
 
     @Operation(
@@ -61,33 +67,48 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
+
+
     @Operation(
             summary = "Pronounce customer name",
-            description = """
-                    Returns a WAV audio clip that pronounces the customer's name.
-                    Currently uses a mock sine-wave generator; a real TTS engine will be
-                    plugged in at a later stage.
-                    """
+            description = "Calls AWS Polly Neural TTS to synthesize the customer's name and returns MP3 audio."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "WAV audio bytes",
-                    content = @Content(mediaType = "audio/wav")),
+            @ApiResponse(responseCode = "200", description = "MP3 audio bytes",
+                    content = @Content(mediaType = "audio/mpeg")),
             @ApiResponse(responseCode = "404", description = "Customer not found",
                     content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Unexpected server error",
                     content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class)))
     })
-    @GetMapping("/customers/{customerId}/pronounce")
+    @GetMapping("/customers/{customerPk}/pronounce")
     public ResponseEntity<byte[]> pronounceCustomerName(
-            @Parameter(description = "Customer identifier", required = true)
-            @PathVariable("customerId") @NotNull Long customerId) {
+            @Parameter(description = "Customer PK", required = true)
+            @PathVariable("customerPk") @NotNull UUID customerPk) {
 
-        String name = customerService.getCustomerName(customerId);
-        byte[] wav  = pronounceService.generateWav(name);
+        String name = customerService.getCustomerName(customerPk);
+        byte[] mp3  = pronounceService.synthesize(name);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + customerId + "-pronounce.wav\"")
+                        "inline; filename=\"" + customerPk + "-pronounce.mp3\"")
+                .contentType(MediaType.parseMediaType("audio/mpeg"))
+                .contentLength(mp3.length)
+                .body(mp3);
+    }
+
+
+    @GetMapping("/customers/{customerPk}/blip")
+    public ResponseEntity<byte[]> blip(
+            @Parameter(description = "Customer PK", required = true)
+            @PathVariable("customerPk") @NotNull UUID customerPk) {
+
+        String name = customerService.getCustomerName(customerPk);
+        byte[] wav  = mockBlipService.generateWav(name);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + customerPk + "-pronounce.wav\"")
                 .contentType(MediaType.parseMediaType("audio/wav"))
                 .contentLength(wav.length)
                 .body(wav);

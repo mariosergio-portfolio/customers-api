@@ -1,175 +1,110 @@
 package com.planet.customersapi.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.polly.PollyClient;
+import software.amazon.awssdk.services.polly.model.OutputFormat;
+import software.amazon.awssdk.services.polly.model.PollyException;
+import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
+import software.amazon.awssdk.services.polly.model.SynthesizeSpeechResponse;
+import software.amazon.awssdk.services.polly.model.VoiceId;
 
-import java.io.ByteArrayOutputStream;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
- * Generates a mock audio pronunciation for a customer name.
+ * Synthesizes customer-name audio via AWS Polly (Neural TTS).
  *
- * Each letter maps to a distinct frequency; the result is a raw PCM WAV file
- * produced entirely in-memory with no external dependencies.
+ * Credentials are resolved in priority order:
+ *   1. Explicit access-key / secret-key in application.yml  (dev convenience)
+ *   2. AWS default chain (env vars, ~/.aws/credentials, IAM role) when the
+ *      keys are left blank — preferred for production / ECS deployments.
  *
- * TODO: replace with a real TTS engine (e.g. Google Cloud TTS, AWS Polly,
- *       OpenAI TTS) once the synthesis pipeline is in place.
+ * The response is returned as raw MP3 bytes (audio/mpeg).
  */
 @Service
 @Slf4j
 public class PronounceService {
 
-    private static final int SAMPLE_RATE      = 22_050;   // Hz
-    private static final double LETTER_DURATION = 0.13;   // seconds per letter
-    private static final double PAUSE_DURATION  = 0.04;   // silence between letters
-    private static final double AMPLITUDE       = 0.35;   // 0..1
+    @Value("${aws.polly.region:us-east-1}")
+    private String region;
 
-    // ── frequencies (Hz) assigned to each letter a-z ────────────────────────
-    private static final double[] LETTER_FREQ = {
-        261.63,  // a – C4
-        293.66,  // b – D4
-        329.63,  // c – E4
-        349.23,  // d – F4
-        392.00,  // e – G4
-        440.00,  // f – A4
-        493.88,  // g – B4
-        523.25,  // h – C5
-        587.33,  // i – D5
-        659.25,  // j – E5
-        698.46,  // k – F5
-        783.99,  // l – G5
-        880.00,  // m – A5
-        987.77,  // n – B5
-       1046.50,  // o – C6
-       1174.66,  // p – D6
-       1318.51,  // q – E6
-       1396.91,  // r – F6
-       1567.98,  // s – G6
-       1760.00,  // t – A6
-       1975.53,  // u – B6
-       2093.00,  // v – C7
-       2349.32,  // w – D7
-       2637.02,  // x – E7
-       2793.83,  // y – F7
-       3135.96,  // z – G7
-    };
+    @Value("${aws.polly.voice-id:Joanna}")
+    private String voiceId;
+
+    @Value("${aws.polly.access-key:}")
+    private String accessKey;
+
+    @Value("${aws.polly.secret-key:}")
+    private String secretKey;
+
+    private PollyClient pollyClient;
+
+    @PostConstruct
+    void init() {
+        var builder = PollyClient.builder()
+                .region(Region.of(region));
+
+        if (accessKey != null && !accessKey.isBlank()
+                && secretKey != null && !secretKey.isBlank()) {
+            log.info("AWS Polly: using static credentials from configuration");
+            builder.credentialsProvider(
+                    StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create(accessKey, secretKey)));
+        } else {
+            log.info("AWS Polly: using default credentials chain (env / profile / IAM role)");
+            builder.credentialsProvider(DefaultCredentialsProvider.create());
+        }
+
+        pollyClient = builder.build();
+        log.info("AWS Polly client initialised — region={}, voice={}", region, voiceId);
+    }
 
     /**
-     * Generates a WAV audio clip that "pronounces" the given name by playing
-     * a sine-wave tone for each alphabetic character, with short silences
-     * between letters and a 120ms padding at the end.
+     * Calls AWS Polly to synthesize the given name and returns the MP3 bytes.
      *
-     * @param name the customer name to pronounce
-     * @return WAV file bytes (audio/wav)
+     * @param name customer name to pronounce
+     * @return MP3 audio bytes (audio/mpeg)
+     * @throws PronounceException if Polly returns an error or the stream cannot be read
      */
-    public byte[] generateWav(String name) {
-        log.debug("Generating mock pronunciation WAV for name='{}'", name);
+    public byte[] synthesize(String name) {
+        String text = (name == null || name.isBlank()) ? "unknown" : name.trim();
+        log.debug("Calling AWS Polly: voice={}, text='{}'", voiceId, text);
 
-        // Collect all PCM samples
-        ByteArrayOutputStream pcm = new ByteArrayOutputStream();
-        String normalized = name == null ? "unknown" : name.toLowerCase();
+        SynthesizeSpeechRequest request = SynthesizeSpeechRequest.builder()
+                .text(text)
+                .voiceId(VoiceId.fromValue(voiceId))
+                .outputFormat(OutputFormat.MP3)
+                .engine("neural")
+                .build();
 
-        for (char ch : normalized.toCharArray()) {
-            if (Character.isLetter(ch)) {
-                int idx = Math.min(ch - 'a', LETTER_FREQ.length - 1);
-                double freq = LETTER_FREQ[idx];
-                appendTone(pcm, freq, LETTER_DURATION);
-                appendSilence(pcm, PAUSE_DURATION);
-            } else if (ch == ' ') {
-                // word gap — slightly longer silence
-                appendSilence(pcm, PAUSE_DURATION * 3);
-            }
-        }
-        // trailing silence
-        appendSilence(pcm, 0.12);
+        try (ResponseInputStream<SynthesizeSpeechResponse> stream =
+                     pollyClient.synthesizeSpeech(request)) {
 
-        byte[] pcmBytes = pcm.toByteArray();
-        return buildWav(pcmBytes);
-    }
+            byte[] audio = stream.readAllBytes();
+            log.debug("AWS Polly returned {} bytes for name='{}'", audio.length, text);
+            return audio;
 
-    // ── PCM helpers ──────────────────────────────────────────────────────────
-
-    private void appendTone(ByteArrayOutputStream out, double freqHz, double durationSec) {
-        int samples = (int) (SAMPLE_RATE * durationSec);
-        for (int i = 0; i < samples; i++) {
-            // sine with linear fade-in/out envelope (first and last 10%)
-            double t        = (double) i / SAMPLE_RATE;
-            double envelope = envelope(i, samples);
-            double sample   = AMPLITUDE * envelope * Math.sin(2.0 * Math.PI * freqHz * t);
-            writeInt16Le(out, (short) (sample * Short.MAX_VALUE));
-        }
-    }
-
-    private void appendSilence(ByteArrayOutputStream out, double durationSec) {
-        int samples = (int) (SAMPLE_RATE * durationSec);
-        for (int i = 0; i < samples; i++) {
-            writeInt16Le(out, (short) 0);
-        }
-    }
-
-    /** Simple trapezoidal envelope: fade in/out over the first/last 10% of samples. */
-    private double envelope(int i, int total) {
-        int fadeLen = Math.max(1, total / 10);
-        if (i < fadeLen)             return (double) i / fadeLen;
-        if (i > total - fadeLen)     return (double) (total - i) / fadeLen;
-        return 1.0;
-    }
-
-    // ── WAV header builder ───────────────────────────────────────────────────
-
-    /**
-     * Wraps raw 16-bit mono PCM bytes in a standard RIFF/WAV header.
-     * Output is always: 16-bit, mono, {@value #SAMPLE_RATE} Hz.
-     */
-    private byte[] buildWav(byte[] pcmData) {
-        int channels       = 1;
-        int bitsPerSample  = 16;
-        int byteRate       = SAMPLE_RATE * channels * bitsPerSample / 8;
-        int blockAlign     = channels * bitsPerSample / 8;
-        int dataChunkSize  = pcmData.length;
-        int riffChunkSize  = 36 + dataChunkSize;
-
-        try {
-            ByteArrayOutputStream wav = new ByteArrayOutputStream(44 + dataChunkSize);
-
-            // RIFF header
-            wav.write("RIFF".getBytes());
-            writeInt32Le(wav, riffChunkSize);
-            wav.write("WAVE".getBytes());
-
-            // fmt  sub-chunk
-            wav.write("fmt ".getBytes());
-            writeInt32Le(wav, 16);               // sub-chunk size (PCM)
-            writeInt16Le(wav, (short) 1);        // AudioFormat = PCM
-            writeInt16Le(wav, (short) channels);
-            writeInt32Le(wav, SAMPLE_RATE);
-            writeInt32Le(wav, byteRate);
-            writeInt16Le(wav, (short) blockAlign);
-            writeInt16Le(wav, (short) bitsPerSample);
-
-            // data sub-chunk
-            wav.write("data".getBytes());
-            writeInt32Le(wav, dataChunkSize);
-            wav.write(pcmData);
-
-            return wav.toByteArray();
+        } catch (PollyException e) {
+            log.error("AWS Polly error synthesizing '{}': {}", text, e.getMessage());
+            throw new PronounceException("Polly synthesis failed: " + e.getMessage(), e);
         } catch (IOException e) {
-            // ByteArrayOutputStream never throws IOException
-            throw new IllegalStateException("Unexpected IO error building WAV", e);
+            log.error("Failed to read Polly audio stream for '{}': {}", text, e.getMessage());
+            throw new PronounceException("Failed to read Polly audio stream", e);
         }
     }
 
-    private void writeInt32Le(ByteArrayOutputStream out, int value) {
-        ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-        buf.putInt(value);
-        out.writeBytes(buf.array());
-    }
+    // ── exception ────────────────────────────────────────────────────────────
 
-    private void writeInt16Le(ByteArrayOutputStream out, short value) {
-        ByteBuffer buf = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN);
-        buf.putShort(value);
-        out.writeBytes(buf.array());
+    public static class PronounceException extends RuntimeException {
+        public PronounceException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

@@ -7,13 +7,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface CustomerRepository extends JpaRepository<Customer, Long> {
-
-    List<Customer> findByCompanyIdOrderById(Long companyId);
+public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     List<Customer> findByCompanyIdOrderByNameAsc(Long companyId);
+
+    List<Customer> findByCompanyIdOrderByIdAsc(Long companyId);
 
     /**
      * Search customers for a given company and domain with optional partial text filters on name and/or country.
@@ -25,7 +26,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             WHERE c.companyId = :companyId
               AND (:name    IS NULL OR LOWER(c.name)    LIKE LOWER(CONCAT('%', :name, '%')))
               AND (:country IS NULL OR LOWER(c.country) LIKE LOWER(CONCAT('%', :country, '%')))
-            ORDER BY c.id
+            ORDER BY c.customerPk
             """)
     List<Customer> searchCustomers(
             @Param("companyId") Long companyId,

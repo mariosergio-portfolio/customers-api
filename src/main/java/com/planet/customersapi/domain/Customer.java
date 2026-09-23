@@ -16,11 +16,11 @@ import java.util.UUID;
 public class Customer {
 
     @Id
+    @Column(name = "customer_pk", nullable = false, updatable = false)
+    private UUID customerPk;
+
     @Column(name = "id")
     private Long id;
-
-    @Column(name = "import_id", nullable = false)
-    private UUID importId;
 
     @Column(name = "company_id", nullable = false)
     private Long companyId;

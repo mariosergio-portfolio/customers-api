@@ -11,8 +11,8 @@ import java.util.UUID;
 @Builder
 public class CustomerResponse {
 
+    private UUID customerPk;
     private Long id;
-    private UUID importId;
     private Long companyId;
     private String name;
     private String email;
@@ -23,8 +23,8 @@ public class CustomerResponse {
 
     public static CustomerResponse from(Customer c) {
         return CustomerResponse.builder()
+                .customerPk(c.getCustomerPk())
                 .id(c.getId())
-                .importId(c.getImportId())
                 .companyId(c.getCompanyId())
                 .name(c.getName())
                 .email(c.getEmail())
