@@ -61,9 +61,12 @@ public class CustomerController {
             @RequestParam(value = "name", required = false) String name,
 
             @Parameter(description = "Partial text filter on country (case-insensitive)")
-            @RequestParam(value = "country", required = false) String country) {
+            @RequestParam(value = "country", required = false) String country,
 
-        CustomerPageResponse response = customerService.search(companyId, name, country);
+            @Parameter(description = "Sort order: 'id' (default) or 'name'")
+            @RequestParam(value = "orderBy", required = false, defaultValue = "id") String orderBy) {
+
+        CustomerPageResponse response = customerService.search(companyId, name, country, orderBy);
         return ResponseEntity.ok(response);
     }
 

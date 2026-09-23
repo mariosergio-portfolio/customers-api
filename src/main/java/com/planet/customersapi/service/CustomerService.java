@@ -20,24 +20,24 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    public CustomerPageResponse search(Long companyId, String name, String country) {
+    public CustomerPageResponse search(Long companyId, String name, String country, String orderBy) {
         String normalizedName    = isBlank(name)    ? null : name.trim();
         String normalizedCountry = isBlank(country) ? null : country.trim();
+        boolean byName = "name".equalsIgnoreCase(orderBy);
 
-        log.info("Customer search: companyId={}, name='{}', country='{}'",
-                companyId, normalizedName, normalizedCountry);
+        log.info("Customer search: companyId={}, name='{}', country='{}', orderBy='{}'",
+                companyId, normalizedName, normalizedCountry, orderBy);
 
         List<Customer> customers;
 
         if (normalizedName == null && normalizedCountry == null) {
-            // If no filters are provided, fetch all customers for the company
-            //customers = customerRepository.findByCompanyIdOrderByNameAsc(companyId);
-            customers = customerRepository.findByCompanyIdOrderByIdAsc(companyId);
-        }
-        else {
-            // If filters are provided, perform the search with the given parameters
-             customers = customerRepository.searchCustomers(
-                    companyId, normalizedName, normalizedCountry);
+            customers = byName
+                    ? customerRepository.findByCompanyIdOrderByNameAsc(companyId)
+                    : customerRepository.findByCompanyIdOrderByIdAsc(companyId);
+        } else {
+            customers = byName
+                    ? customerRepository.searchCustomersOrderByName(companyId, normalizedName, normalizedCountry)
+                    : customerRepository.searchCustomersOrderById(companyId, normalizedName, normalizedCountry);
         }
 
         List<CustomerResponse> items = customers.stream()

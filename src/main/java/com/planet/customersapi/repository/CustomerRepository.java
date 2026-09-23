@@ -16,19 +16,26 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     List<Customer> findByCompanyIdOrderByIdAsc(Long companyId);
 
-    /**
-     * Search customers for a given company and domain with optional partial text filters on name and/or country.
-     * Both filters are case-insensitive. Either filter is optional (null skips that predicate).
-     * When both are provided they are combined with AND.
-     */
     @Query("""
             SELECT c FROM Customer c
             WHERE c.companyId = :companyId
-              AND (:name    IS NULL OR LOWER(c.name)    LIKE LOWER(CONCAT('%', :name, '%')))
-              AND (:country IS NULL OR LOWER(c.country) LIKE LOWER(CONCAT('%', :country, '%')))
-            ORDER BY c.customerPk
+              AND (CAST(:name AS string)    IS NULL OR LOWER(c.name)    LIKE LOWER(CONCAT('%', CAST(:name AS string), '%')))
+              AND (CAST(:country AS string) IS NULL OR LOWER(c.country) LIKE LOWER(CONCAT('%', CAST(:country AS string), '%')))
+            ORDER BY c.name ASC
             """)
-    List<Customer> searchCustomers(
+    List<Customer> searchCustomersOrderByName(
+            @Param("companyId") Long companyId,
+            @Param("name") String name,
+            @Param("country") String country);
+
+    @Query("""
+            SELECT c FROM Customer c
+            WHERE c.companyId = :companyId
+              AND (CAST(:name AS string)    IS NULL OR LOWER(c.name)    LIKE LOWER(CONCAT('%', CAST(:name AS string), '%')))
+              AND (CAST(:country AS string) IS NULL OR LOWER(c.country) LIKE LOWER(CONCAT('%', CAST(:country AS string), '%')))
+            ORDER BY c.id ASC
+            """)
+    List<Customer> searchCustomersOrderById(
             @Param("companyId") Long companyId,
             @Param("name") String name,
             @Param("country") String country);
