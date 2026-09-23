@@ -9,11 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.polly.PollyClient;
-import software.amazon.awssdk.services.polly.model.OutputFormat;
-import software.amazon.awssdk.services.polly.model.PollyException;
-import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
-import software.amazon.awssdk.services.polly.model.SynthesizeSpeechResponse;
-import software.amazon.awssdk.services.polly.model.VoiceId;
+import software.amazon.awssdk.services.polly.model.*;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -69,17 +65,20 @@ public class PronounceService {
     /**
      * Calls AWS Polly to synthesize the given name and returns the MP3 bytes.
      *
-     * @param name customer name to pronounce
+     * @param name         customer name to pronounce
+     * @param languageCode BCP-47 language code accepted by Polly (e.g. "en-US", "pt-BR")
      * @return MP3 audio bytes (audio/mpeg)
      * @throws PronounceException if Polly returns an error or the stream cannot be read
      */
-    public byte[] synthesize(String name) {
+    public byte[] synthesize(String name, String languageCode) {
         String text = (name == null || name.isBlank()) ? "unknown" : name.trim();
-        log.debug("Calling AWS Polly: voice={}, text='{}'", voiceId, text);
+        String lang = (languageCode == null || languageCode.isBlank()) ? "en-US" : languageCode.trim();
+        log.debug("Calling AWS Polly: voice={}, language={}, text='{}'", voiceId, lang, text);
 
         SynthesizeSpeechRequest request = SynthesizeSpeechRequest.builder()
                 .text(text)
                 .voiceId(VoiceId.fromValue(voiceId))
+                .languageCode(LanguageCode.fromValue(lang))
                 .outputFormat(OutputFormat.MP3)
                 .engine("neural")
                 .build();

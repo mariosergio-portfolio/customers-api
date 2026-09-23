@@ -87,10 +87,13 @@ public class CustomerController {
     @GetMapping("/customers/{customerPk}/pronounce")
     public ResponseEntity<byte[]> pronounceCustomerName(
             @Parameter(description = "Customer PK", required = true)
-            @PathVariable("customerPk") @NotNull UUID customerPk) {
+            @PathVariable("customerPk") @NotNull UUID customerPk,
+
+            @Parameter(description = "BCP-47 language code for Polly TTS (e.g. en-US, pt-BR). Defaults to en-US.")
+            @RequestParam(value = "language", required = false, defaultValue = "en-US") String language) {
 
         String name = customerService.getCustomerName(customerPk);
-        byte[] mp3  = pronounceService.synthesize(name);
+        byte[] mp3  = pronounceService.synthesize(name, language);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
