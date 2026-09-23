@@ -1,4 +1,4 @@
-package com.planet.customersapi.domain;
+package com.mycompany.customersapi.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

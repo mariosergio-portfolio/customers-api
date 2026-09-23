@@ -1,6 +1,6 @@
-package com.planet.customersapi.repository;
+package com.mycompany.customersapi.repository;
 
-import com.planet.customersapi.domain.Customer;
+import com.mycompany.customersapi.domain.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

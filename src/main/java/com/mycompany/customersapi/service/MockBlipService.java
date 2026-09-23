@@ -1,4 +1,4 @@
-package com.planet.customersapi.service;
+package com.mycompany.customersapi.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

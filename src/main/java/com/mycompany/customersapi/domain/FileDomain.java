@@ -1,4 +1,4 @@
-package com.planet.customersapi.domain;
+package com.mycompany.customersapi.domain;
 
 public enum FileDomain {
     CUSTOMER,

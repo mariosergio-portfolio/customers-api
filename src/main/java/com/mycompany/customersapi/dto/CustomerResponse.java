@@ -1,6 +1,6 @@
-package com.planet.customersapi.dto;
+package com.mycompany.customersapi.dto;
 
-import com.planet.customersapi.domain.Customer;
+import com.mycompany.customersapi.domain.Customer;
 import lombok.Builder;
 import lombok.Getter;
 

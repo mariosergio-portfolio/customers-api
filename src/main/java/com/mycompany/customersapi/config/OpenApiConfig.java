@@ -1,4 +1,4 @@
-package com.planet.customersapi.config;
+package com.mycompany.customersapi.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

@@ -1,9 +1,9 @@
-package com.planet.customersapi.controller;
+package com.mycompany.customersapi.controller;
 
-import com.planet.customersapi.config.GlobalExceptionHandler;
-import com.planet.customersapi.dto.CustomerPageResponse;
-import com.planet.customersapi.service.CustomerService;
-import com.planet.customersapi.service.MockBlipService;
+import com.mycompany.customersapi.config.GlobalExceptionHandler;
+import com.mycompany.customersapi.dto.CustomerPageResponse;
+import com.mycompany.customersapi.service.CustomerService;
+import com.mycompany.customersapi.service.MockBlipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

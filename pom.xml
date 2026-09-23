@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.planet</groupId>
+    <groupId>com.mycompany</groupId>
     <artifactId>customers-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>customers-api</name>

@@ -1,4 +1,4 @@
-package com.planet.customersapi.dto;
+package com.mycompany.customersapi.dto;
 
 import lombok.Builder;
 import lombok.Getter;

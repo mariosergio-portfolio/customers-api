@@ -1,4 +1,4 @@
-package com.planet.customersapi.config;
+package com.mycompany.customersapi.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

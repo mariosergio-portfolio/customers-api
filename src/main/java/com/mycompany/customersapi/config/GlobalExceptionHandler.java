@@ -1,4 +1,4 @@
-package com.planet.customersapi.config;
+package com.mycompany.customersapi.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.planet.customersapi.config;
+package com.mycompany.customersapi.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

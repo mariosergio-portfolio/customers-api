@@ -31,7 +31,7 @@ server:
 logging:
   level:
     root: DEBUG
-    com.planet: DEBUG
+    com.mycompany: DEBUG
 
 aws:
   polly:

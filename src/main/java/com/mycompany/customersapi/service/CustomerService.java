@@ -1,9 +1,9 @@
-package com.planet.customersapi.service;
+package com.mycompany.customersapi.service;
 
-import com.planet.customersapi.domain.Customer;
-import com.planet.customersapi.dto.CustomerPageResponse;
-import com.planet.customersapi.dto.CustomerResponse;
-import com.planet.customersapi.repository.CustomerRepository;
+import com.mycompany.customersapi.domain.Customer;
+import com.mycompany.customersapi.dto.CustomerPageResponse;
+import com.mycompany.customersapi.dto.CustomerResponse;
+import com.mycompany.customersapi.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
