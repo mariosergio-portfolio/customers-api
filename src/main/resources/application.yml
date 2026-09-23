@@ -39,5 +39,7 @@ aws:
     voice-id: ${AWS_POLLY_VOICE_ID:Joanna}
     # Leave blank in production — IAM role / env-var credentials chain is used instead.
     # Set only for local development when no AWS profile is configured.
-    access-key: ${AWS_ACCESS_KEY_ID:}
-    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+
+   # not required if logged with: aws login command
+   # access-key: ${AWS_ACCESS_KEY_ID:}
+   # secret-key: ${AWS_SECRET_ACCESS_KEY:}
