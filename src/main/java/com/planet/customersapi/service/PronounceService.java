@@ -13,6 +13,9 @@ import software.amazon.awssdk.services.polly.model.*;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Synthesizes customer-name audio via AWS Polly (Neural TTS).
@@ -41,6 +44,8 @@ public class PronounceService {
     private String secretKey;
 
     private PollyClient pollyClient;
+
+    private final Map<String, String> voiceByLanguage = new ConcurrentHashMap<>();
 
     @PostConstruct
     void init() {
@@ -73,15 +78,20 @@ public class PronounceService {
      */
     public byte[] synthesize(String name, String country, String languageCode) {
         String safeName = (name == null || name.isBlank()) ? "unknown" : name.trim();
+
+        String from = (languageCode.startsWith("pt") || languageCode.startsWith("es")) ? "de" : "from";
+
         String text     = (country != null && !country.isBlank())
-                ? safeName + " from " + country.trim()
+                ? safeName + " " + from + " " + country.trim()
                 : safeName;
         String lang     = (languageCode == null || languageCode.isBlank()) ? "en-US" : languageCode.trim();
-        log.debug("Calling AWS Polly: voice={}, language={}, text='{}'", voiceId, lang, text);
+        String voice    = resolveVoice(lang);
+        log.debug("Calling AWS Polly: voice={}, language={}, text='{}'", voice, lang, text);
 
         SynthesizeSpeechRequest request = SynthesizeSpeechRequest.builder()
                 .text(text)
-                .voiceId(VoiceId.fromValue(voiceId))
+                .voiceId(VoiceId.fromValue(voice))
+               // .voiceId(VoiceId.fromValue(voiceId)) // Joana is always en-US, but Polly will still synthesize it in the requested language if the voice supports it
                 .languageCode(LanguageCode.fromValue(lang))
                 .outputFormat(OutputFormat.MP3)
                 .engine("neural")
@@ -101,6 +111,34 @@ public class PronounceService {
             log.error("Failed to read Polly audio stream for '{}': {}", text, e.getMessage());
             throw new PronounceException("Failed to read Polly audio stream", e);
         }
+    }
+
+    /**
+     * The voice, not the LanguageCode, determines the accent: Polly only honours
+     * LanguageCode for bilingual voices. So pick a neural voice native to the
+     * requested language — the configured voice if it matches, otherwise the
+     * first one Polly lists for that language. Results are cached per language.
+     */
+    private String resolveVoice(String languageCode) {
+        return voiceByLanguage.computeIfAbsent(languageCode, lang -> {
+            try {
+                List<Voice> voices = pollyClient.describeVoices(DescribeVoicesRequest.builder()
+                        .engine(Engine.NEURAL)
+                        .languageCode(LanguageCode.fromValue(lang))
+                        .build()).voices();
+
+                String chosen = voices.stream()
+                        .map(Voice::idAsString)
+                        .filter(voiceId::equalsIgnoreCase)
+                        .findFirst()
+                        .orElseGet(() -> voices.isEmpty() ? voiceId : voices.getFirst().idAsString());
+                log.info("AWS Polly: language={} → voice={}", lang, chosen);
+                return chosen;
+            } catch (PollyException e) {
+                throw new PronounceException("Could not resolve a Polly voice for language " + lang
+                        + ": " + e.getMessage(), e);
+            }
+        });
     }
 
     // ── exception ────────────────────────────────────────────────────────────
