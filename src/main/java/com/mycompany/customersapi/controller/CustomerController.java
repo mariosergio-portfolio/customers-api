@@ -3,7 +3,6 @@ package com.mycompany.customersapi.controller;
 import com.mycompany.customersapi.config.GlobalExceptionHandler;
 import com.mycompany.customersapi.dto.CustomerPageResponse;
 import com.mycompany.customersapi.service.CustomerService;
-import com.mycompany.customersapi.service.MockBlipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,7 +30,6 @@ import java.util.UUID;
 public class CustomerController {
 
     private final CustomerService customerService;
-    private final MockBlipService mockBlipService;
 
     @Operation(
             summary = "Search customers",
@@ -95,7 +93,7 @@ public class CustomerController {
                 .body(mp3);
     }
 
-    @GetMapping("/customers/{customerPk}/blip")
+  /*  @GetMapping("/customers/{customerPk}/blip")
     public ResponseEntity<byte[]> blip(
             @Parameter(description = "Customer PK", required = true)
             @PathVariable("customerPk") @NotNull UUID customerPk) {
@@ -108,5 +106,5 @@ public class CustomerController {
                 .contentType(MediaType.parseMediaType("audio/wav"))
                 .contentLength(wav.length)
                 .body(wav);
-    }
+    }*/
 }
