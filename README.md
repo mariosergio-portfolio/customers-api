@@ -10,6 +10,8 @@ REST API for querying customers. Part of the [Mario Sérgio portfolio](https://g
 
 ## Architecture
 
+
+The frontend calls the Customers API, which queries PostgreSQL for customer data via `CustomerService`/`CustomerRepository`, and calls AWS Polly on demand via `PronounceService` to synthesize name pronunciations.
 ```
                         +----------------------------+
                         |     portfolio-frontend     |
@@ -42,11 +44,15 @@ REST API for querying customers. Part of the [Mario Sérgio portfolio](https://g
          +----------------------+             +--------------------+
 ```
 
-The frontend calls the Customers API, which queries PostgreSQL for customer data via `CustomerService`/`CustomerRepository`, and calls AWS Polly on demand via `PronounceService` to synthesize name pronunciations.
+<img src="docs/customers-api-AWS%20Architecture%20%28AWS17%29.drawio.png" alt="Customers page UI" width="600">
+
+---
+
+
 
 *WEB Rest API resources*
 
-<img src="README_UI_0.png" alt="README_UI_0.png" width="400">
+<img src="README_UI_0.png" alt="README_UI_0.png" width="600">
 
 
 -
