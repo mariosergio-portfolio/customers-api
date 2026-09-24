@@ -48,18 +48,15 @@ The frontend calls the Customers API, which queries PostgreSQL for customer data
 
 ---
 
-
-
-*WEB Rest API resources*
+### REST API
 
 <img src="README_UI_0.png" alt="README_UI_0.png" width="600">
 
-
--
+### Customers FRONT UI 
 
 *The Customers case study page (from [portfolio-frontend](https://github.com/mariosergio30/portfolio-frontend)) consuming this API — search, filter, and pronounce customer names.*
 
-<img src="README_UI_1.png" alt="Customers page UI" width="400">
+<img src="README_UI_1.png" alt="Customers page UI" width="600">
 
 
 
