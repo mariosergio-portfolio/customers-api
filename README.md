@@ -79,6 +79,10 @@ Both services (Java and Node) call Bedrock and SES through the ECS task role (`b
 
 <img src="docs/customers-api-nl-assistant.gif" alt="NL assistant sequence diagram" width="600">
 
+*Prototype of the planned assistant screen (mockup, not implemented yet):*
+
+<img src="docs/customers-api-nl-assistant-ui.png" alt="NL assistant UI prototype" width="600">
+
 Open points: the schema needs a `birthDate` and an email address per customer, and a country → language mapping (a fixed lookup is more predictable than asking the model). Kendra was considered and dropped: it ranks text relevance and cannot sort or filter structured rows, and it is costly to run.
 
 ## Tech stack
