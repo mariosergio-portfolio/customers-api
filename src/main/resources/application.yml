@@ -7,7 +7,7 @@ spring:
   application:
     name: customers-api
   profiles:
-    active: dev
+    active: local
 
   jpa:
     hibernate:
@@ -30,6 +30,26 @@ spring:
     #      or if you do not specifically want to start with a baseline version of 1, but rather 0.
     #baseline-on-migrate: true
     #baseline-version: 0
+
+
+#  http://localhost:8082/customers/actuator/health (yml context-path)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, loggers, mappings
+  endpoint:
+    health:
+      show-details: always
+    info:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    build:
+      enabled: true
 
 springdoc:
   api-docs:
