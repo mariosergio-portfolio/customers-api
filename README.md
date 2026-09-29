@@ -44,7 +44,7 @@ The frontend calls the Customers API, which queries PostgreSQL for customer data
          +----------------------+             +--------------------+
 ```
 
-<img src="docs/customers-api-AWS%20Architecture%20%28AWS17%29.drawio.png" alt="Customers page UI" width="600">
+<img src="docs/customers-api-architecture.gif" alt="Customers API AWS architecture" width="600">
 
 ---
 
@@ -75,7 +75,9 @@ The frontend calls the Customers API, which queries PostgreSQL for customer data
 3. **Act** — Bedrock drafts one email per matching customer in the main language of the customer's country.
 4. **Deliver** — [Amazon SES](https://aws.amazon.com/ses/) sends the emails, with a preview/approval step and a cap on recipients per request.
 
-Both services (Java and Node) call Bedrock and SES through the ECS task role (`bedrock:InvokeModel`, `ses:SendEmail`). See the *Planned: NL assistant* box and the four assistant pages (sequence, activity, email-job state machine, data flow) in [docs/customers-api.drawio](docs/customers-api.drawio).
+Both services (Java and Node) call Bedrock and SES through the ECS task role (`bedrock:InvokeModel`, `ses:SendEmail`). The request flow is shown below.
+
+<img src="docs/customers-api-nl-assistant.gif" alt="NL assistant sequence diagram" width="600">
 
 Open points: the schema needs a `birthDate` and an email address per customer, and a country → language mapping (a fixed lookup is more predictable than asking the model). Kendra was considered and dropped: it ranks text relevance and cannot sort or filter structured rows, and it is costly to run.
 
