@@ -1,0 +1,50 @@
+version: 0.2
+# =============================================================================
+# buildspec.yml — AWS CodeBuild: build the Docker image and push to ECR.
+#
+# Required environment variables (set in the CodeBuild project):
+#   AWS_DEFAULT_REGION  — e.g. us-east-1
+#   AWS_ACCOUNT_ID      — 12-digit account number
+#   ECR_REPO            — repository name, e.g. customers-repo
+#   IMAGE_TAG           — tag to apply, e.g. latest or a semver
+#
+# The CodeBuild service role must have:
+#   ecr:GetAuthorizationToken
+#   ecr:BatchCheckLayerAvailability
+#   ecr:InitiateLayerUpload / UploadLayerPart / CompleteLayerUpload
+#   ecr:PutImage
+#   ecr:BatchGetImage
+#   ecr:DescribeRepositories
+# =============================================================================
+
+env:
+  variables:
+    ECR_REPO: "customers-repo"
+    IMAGE_TAG: "latest"
+
+phases:
+  pre_build:
+    commands:
+      - echo "=== Logging into Amazon ECR ==="
+      - ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+      - aws ecr get-login-password --region "${AWS_DEFAULT_REGION}"
+          | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+
+  build:
+    commands:
+      - echo "=== Building Docker image ==="
+      - FULL_IMAGE="${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}"
+      - docker build -t "${FULL_IMAGE}" .
+      - echo "=== Build complete > ${FULL_IMAGE} ==="
+
+  post_build:
+    commands:
+      - echo "=== Pushing image to ECR ==="
+      - docker push "${FULL_IMAGE}"
+      - echo "=== Pushed ${FULL_IMAGE} ==="
+      # Write the image URI to a file so downstream steps / deploy scripts can read it
+      - printf '{"imageUri":"%s"}' "${FULL_IMAGE}" > imageDetail.json
+
+artifacts:
+  files:
+    - imageDetail.json
