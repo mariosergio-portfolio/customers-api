@@ -1,14 +1,11 @@
+server:
+  port: 8082
+
 spring:
   application:
     name: customers-api
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:local}
-
-  datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres}?currentSchema=customer_app
-    username: postgres
-    password: 123
-    driver-class-name: org.postgresql.Driver
+    active: dev
 
   jpa:
     hibernate:
@@ -37,9 +34,6 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
-
-server:
-  port: 8082
 
 logging:
   level:
