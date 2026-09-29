@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" agent="customers-api generator" pages="7">
+<mxfile host="app.diagrams.net" agent="customers-api generator" pages="11">
   <diagram id="p1-AWSArchitect" name="AWS Architecture (AWS17)">
     <mxGraphModel dx="1768" dy="929" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="960" math="0" shadow="0">
       <root>
@@ -67,17 +67,11 @@
         <mxCell id="p1-AWSArchitect-21" parent="1" style="rounded=0;arcSize=6;dashed=1;fillColor=none;strokeColor=#2E73B8;dashPattern=4 4;align=center;verticalAlign=top;fontSize=10;fontColor=#2E73B8;html=1;" value="Private subnet" vertex="1">
           <mxGeometry height="165" width="160" x="965" y="395" as="geometry" />
         </mxCell>
-        <mxCell id="p1-AWSArchitect-22" parent="1" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;shape=mxgraph.aws3.role;fillColor=#759C3E;gradientColor=none;rounded=0;" value="&lt;b&gt;ECS task role&lt;/b&gt;&lt;br&gt;polly:SynthesizeSpeech&lt;br&gt;polly:DescribeVoices" vertex="1">
+        <mxCell id="p1-AWSArchitect-22" parent="1" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;shape=mxgraph.aws3.role;fillColor=#759C3E;gradientColor=none;rounded=0;" value="&lt;b&gt;ECS task role&lt;/b&gt;&lt;br&gt;polly:SynthesizeSpeech&lt;br&gt;polly:DescribeVoices&lt;br&gt;&lt;i&gt;planned: bedrock:InvokeModel,&lt;br&gt;ses:SendEmail&lt;/i&gt;" vertex="1">
           <mxGeometry height="59" width="70" x="1170" y="600" as="geometry" />
         </mxCell>
         <mxCell id="p1-AWSArchitect-23" parent="1" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;shape=mxgraph.aws3.polly;fillColor=#2E73B8;gradientColor=none;rounded=0;" value="&lt;b&gt;Amazon Polly&lt;/b&gt;&lt;br&gt;Neural TTS&lt;br&gt;DescribeVoices · SynthesizeSpeech" vertex="1">
           <mxGeometry height="76" width="62" x="1360" y="200" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-AWSArchitect-24" parent="1" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;shape=mxgraph.aws3.cloudwatch;fillColor=#759C3E;gradientColor=none;rounded=0;" value="&lt;b&gt;Amazon CloudWatch Logs&lt;/b&gt;&lt;br&gt;Java: Logback · Node: pino JSON" vertex="1">
-          <mxGeometry height="72" width="64" x="1360" y="400" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-AWSArchitect-25" parent="1" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;shape=mxgraph.aws3.ecr;fillColor=#F58534;gradientColor=none;rounded=0;" value="&lt;b&gt;Amazon ECR&lt;/b&gt;&lt;br&gt;images: customers-api,&lt;br&gt;customers-api-node" vertex="1">
-          <mxGeometry height="62" width="60" x="1360" y="600" as="geometry" />
         </mxCell>
         <mxCell id="p1-AWSArchitect-26" edge="1" parent="1" source="p1-AWSArchitect-3" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" target="p1-AWSArchitect-4" value="">
           <mxGeometry relative="1" as="geometry" />
@@ -152,31 +146,6 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p1-AWSArchitect-36" edge="1" parent="1" source="p1-AWSArchitect-19" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;dashed=1;fontSize=10;labelBackgroundColor=#ffffff;strokeColor=#777777;flowAnimation=1;" target="p1-AWSArchitect-24" value="stdout logs (awslogs)">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="800" y="725" />
-              <mxPoint x="1330" y="725" />
-              <mxPoint x="1330" y="436" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="p1-AWSArchitect-37" edge="1" parent="1" source="p1-AWSArchitect-17" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;dashed=1;fontSize=10;labelBackgroundColor=#ffffff;strokeColor=#777777;flowAnimation=1;" target="p1-AWSArchitect-24" value="">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="700" y="725" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="p1-AWSArchitect-38" edge="1" parent="1" source="p1-AWSArchitect-25" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;dashed=1;fontSize=10;labelBackgroundColor=#ffffff;strokeColor=#777777;flowAnimation=1;" target="p1-AWSArchitect-19" value="image pull">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="1300" y="631" />
-              <mxPoint x="1300" y="755" />
-              <mxPoint x="760" y="755" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
         <mxCell id="p1-AWSArchitect-39" parent="1" style="rounded=0;arcSize=4;dashed=1;fillColor=#fafafa;strokeColor=#7D7C7C;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;html=1;" value="&lt;b&gt;Local development&lt;/b&gt;" vertex="1">
           <mxGeometry height="260" width="400" x="30" y="560" as="geometry" />
         </mxCell>
@@ -193,15 +162,40 @@
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="103" y="850" />
-              <mxPoint x="1440" y="850" />
-              <mxPoint x="1440" y="238" />
+              <mxPoint x="1500" y="850" />
+              <mxPoint x="1500" y="238" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="p1-AWSArchitect-44" parent="1" style="text;html=1;align=left;verticalAlign=top;strokeColor=#cccccc;fillColor=#ffffff;spacing=6;fontSize=11;rounded=0;" value="&lt;b&gt;Legend&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#6c8ebf&quot;&gt;■&lt;/font&gt; Java path &amp;nbsp; &lt;font color=&quot;#82b366&quot;&gt;■&lt;/font&gt; Node path &amp;nbsp; ━ request flow &amp;nbsp; ┅ auxiliary" vertex="1">
           <mxGeometry height="50" width="420" x="1150" y="880" as="geometry" />
         </mxCell>
-      </root>
+              <mxCell id="p1-AWSArchitect-50" parent="1" style="rounded=0;arcSize=4;dashed=1;dashPattern=6 4;fillColor=#fff8e1;strokeColor=#d6a100;align=center;verticalAlign=top;spacingTop=4;html=1;fontSize=11;" value="&lt;b&gt;Planned: NL assistant&lt;/b&gt;" vertex="1">
+          <mxGeometry height="240" width="130" x="1340" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-AWSArchitect-52" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#01A88D;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.bedrock;" value="&lt;b&gt;Amazon Bedrock&lt;/b&gt;&lt;br&gt;greeting emails (per-country language)" vertex="1">
+          <mxGeometry height="48" width="48" x="1381" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-AWSArchitect-53" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.simple_email_service;" value="&lt;b&gt;Amazon SES&lt;/b&gt;&lt;br&gt;send emails" vertex="1">
+          <mxGeometry height="48" width="48" x="1381" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="p1-AWSArchitect-54" edge="1" parent="1" source="p1-AWSArchitect-17" target="p1-AWSArchitect-50" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;strokeColor=#6c8ebf;flowAnimation=1;exitX=1;exitY=0.25;entryX=0;entryY=0.25;" value="query / action requests">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1250" y="360" />
+              <mxPoint x="1250" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p1-AWSArchitect-55" edge="1" parent="1" source="p1-AWSArchitect-19" target="p1-AWSArchitect-50" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;strokeColor=#82b366;flowAnimation=1;exitX=1;exitY=0.8;entryX=0;entryY=0.4;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1290" y="576" />
+              <mxPoint x="1290" y="466" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+</root>
     </mxGraphModel>
   </diagram>
   <diagram id="p2-UMLComponent" name="UML Component">
@@ -226,7 +220,7 @@
         <mxCell id="p2-UMLComponent-4" value="Customers REST API&lt;br&gt;&lt;span style=&quot;font-weight:normal&quot;&gt;OpenAPI 3.1 · /v3/api-docs&lt;/span&gt;" style="ellipse;html=1;fillColor=#ffffff;strokeWidth=2;labelPosition=right;verticalLabelPosition=middle;align=left;verticalAlign=middle;spacingLeft=6;fontSize=11;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="709" y="185" width="22" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-5" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p2-UMLComponent-3" target="p2-UMLComponent-4">
+        <mxCell id="p2-UMLComponent-5" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-3" target="p2-UMLComponent-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="p2-UMLComponent-6" value="customers-api (Java 25 · Spring Boot 4.1)" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=330;tabHeight=26;tabPosition=left;html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=10;fillColor=#dae8fc;strokeColor=#6c8ebf;opacity=45;" vertex="1" parent="1">
@@ -381,34 +375,34 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p2-UMLComponent-26" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p2-UMLComponent-7" target="p2-UMLComponent-9">
+        <mxCell id="p2-UMLComponent-26" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-7" target="p2-UMLComponent-9">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-27" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p2-UMLComponent-9" target="p2-UMLComponent-11">
+        <mxCell id="p2-UMLComponent-27" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-9" target="p2-UMLComponent-11">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-28" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p2-UMLComponent-9" target="p2-UMLComponent-10">
+        <mxCell id="p2-UMLComponent-28" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-9" target="p2-UMLComponent-10">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-29" value="advises" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p2-UMLComponent-8" target="p2-UMLComponent-7">
+        <mxCell id="p2-UMLComponent-29" value="advises" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-8" target="p2-UMLComponent-7">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-30" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p2-UMLComponent-11" target="p2-UMLComponent-13">
+        <mxCell id="p2-UMLComponent-30" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-11" target="p2-UMLComponent-13">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-31" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p2-UMLComponent-16" target="p2-UMLComponent-18">
+        <mxCell id="p2-UMLComponent-31" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-16" target="p2-UMLComponent-18">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-32" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p2-UMLComponent-16" target="p2-UMLComponent-17">
+        <mxCell id="p2-UMLComponent-32" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-16" target="p2-UMLComponent-17">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-33" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p2-UMLComponent-18" target="p2-UMLComponent-20">
+        <mxCell id="p2-UMLComponent-33" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-18" target="p2-UMLComponent-20">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-34" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p2-UMLComponent-20" target="p2-UMLComponent-21">
+        <mxCell id="p2-UMLComponent-34" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-20" target="p2-UMLComponent-21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-35" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p2-UMLComponent-20" target="p2-UMLComponent-19">
+        <mxCell id="p2-UMLComponent-35" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-20" target="p2-UMLComponent-19">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1090" y="540" />
@@ -416,7 +410,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p2-UMLComponent-36" value="wires" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p2-UMLComponent-22" target="p2-UMLComponent-20">
+        <mxCell id="p2-UMLComponent-36" value="wires" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-22" target="p2-UMLComponent-20">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1100" y="595" />
@@ -424,7 +418,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p2-UMLComponent-37" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p2-UMLComponent-21" target="p2-UMLComponent-23">
+        <mxCell id="p2-UMLComponent-37" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-21" target="p2-UMLComponent-23">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="925" y="715" />
@@ -459,14 +453,14 @@
         <mxCell id="p2-UMLComponent-43" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=none;strokeWidth=2;" edge="1" parent="1" source="p2-UMLComponent-41" target="p2-UMLComponent-39">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p2-UMLComponent-44" value="«use» JDBC" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="p2-UMLComponent-11" target="p2-UMLComponent-40">
+        <mxCell id="p2-UMLComponent-44" value="«use» JDBC" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#6c8ebf;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-11" target="p2-UMLComponent-40">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="185" y="871" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p2-UMLComponent-45" value="«use» pg" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;" edge="1" parent="1" source="p2-UMLComponent-21" target="p2-UMLComponent-40">
+        <mxCell id="p2-UMLComponent-45" value="«use» pg" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-21" target="p2-UMLComponent-40">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="925" y="830" />
@@ -474,7 +468,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p2-UMLComponent-46" value="«use» SDK v2" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="p2-UMLComponent-10" target="p2-UMLComponent-41">
+        <mxCell id="p2-UMLComponent-46" value="«use» SDK v2" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#6c8ebf;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-10" target="p2-UMLComponent-41">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="515" y="840" />
@@ -482,7 +476,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p2-UMLComponent-47" value="«use» SDK JS v3" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;" edge="1" parent="1" source="p2-UMLComponent-19" target="p2-UMLComponent-41">
+        <mxCell id="p2-UMLComponent-47" value="«use» SDK JS v3" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#82b366;flowAnimation=1;" edge="1" parent="1" source="p2-UMLComponent-19" target="p2-UMLComponent-41">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1255" y="871" />
@@ -653,25 +647,25 @@
         <mxCell id="p3-UMLClassJava-52" value="CORS: allowedOrigins(&quot;*&quot;), GET/POST/PUT/DELETE/OPTIONS · OpenAPI info &quot;Customers API 1.0.0&quot; · ObjectMapper (JavaTimeModule, ISO dates)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Courier New;" vertex="1" parent="p3-UMLClassJava-51">
           <mxGeometry x="0" y="40" width="820" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-53" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p3-UMLClassJava-3" target="p3-UMLClassJava-7">
+        <mxCell id="p3-UMLClassJava-53" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-3" target="p3-UMLClassJava-7">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-54" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p3-UMLClassJava-7" target="p3-UMLClassJava-11">
+        <mxCell id="p3-UMLClassJava-54" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-7" target="p3-UMLClassJava-11">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-55" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p3-UMLClassJava-7" target="p3-UMLClassJava-19">
+        <mxCell id="p3-UMLClassJava-55" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-7" target="p3-UMLClassJava-19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-56" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p3-UMLClassJava-11" target="p3-UMLClassJava-15">
+        <mxCell id="p3-UMLClassJava-56" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-11" target="p3-UMLClassJava-15">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-57" value="«manages»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p3-UMLClassJava-11" target="p3-UMLClassJava-31">
+        <mxCell id="p3-UMLClassJava-57" value="«manages»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-11" target="p3-UMLClassJava-31">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-58" value="«returns»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p3-UMLClassJava-3" target="p3-UMLClassJava-37">
+        <mxCell id="p3-UMLClassJava-58" value="«returns»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-3" target="p3-UMLClassJava-37">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-59" value="1 … 0..* customers" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;" edge="1" parent="1" source="p3-UMLClassJava-37" target="p3-UMLClassJava-33">
+        <mxCell id="p3-UMLClassJava-59" value="1 … 0..* customers" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;align=left;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-37" target="p3-UMLClassJava-33">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="990" y="134" />
@@ -679,22 +673,22 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p3-UMLClassJava-60" value="«create» from()" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p3-UMLClassJava-33" target="p3-UMLClassJava-31">
+        <mxCell id="p3-UMLClassJava-60" value="«create» from()" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-33" target="p3-UMLClassJava-31">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-61" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=circlePlus;endFill=0;startArrow=none;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p3-UMLClassJava-23" target="p3-UMLClassJava-19">
+        <mxCell id="p3-UMLClassJava-61" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=circlePlus;endFill=0;startArrow=none;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-23" target="p3-UMLClassJava-19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-62" value="throws" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p3-UMLClassJava-19" target="p3-UMLClassJava-23">
+        <mxCell id="p3-UMLClassJava-62" value="throws" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-19" target="p3-UMLClassJava-23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-63" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p3-UMLClassJava-19" target="p3-UMLClassJava-27">
+        <mxCell id="p3-UMLClassJava-63" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-19" target="p3-UMLClassJava-27">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-64" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p3-UMLClassJava-39" target="p3-UMLClassJava-43">
+        <mxCell id="p3-UMLClassJava-64" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-39" target="p3-UMLClassJava-43">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p3-UMLClassJava-65" value="advises" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p3-UMLClassJava-39" target="p3-UMLClassJava-3">
+        <mxCell id="p3-UMLClassJava-65" value="advises" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p3-UMLClassJava-39" target="p3-UMLClassJava-3">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1200" y="80" />
@@ -914,13 +908,13 @@
         <mxCell id="p4-UMLClassNode-68" value="total: number&lt;br&gt;customers: CustomerResponse[]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Courier New;" vertex="1" parent="p4-UMLClassNode-67">
           <mxGeometry x="0" y="40" width="360" height="42" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-69" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-3" target="p4-UMLClassNode-11">
+        <mxCell id="p4-UMLClassNode-69" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-3" target="p4-UMLClassNode-11">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-70" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-3" target="p4-UMLClassNode-7">
+        <mxCell id="p4-UMLClassNode-70" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-3" target="p4-UMLClassNode-7">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-71" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-3" target="p4-UMLClassNode-39">
+        <mxCell id="p4-UMLClassNode-71" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-3" target="p4-UMLClassNode-39">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="20" y="200" />
@@ -928,25 +922,25 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p4-UMLClassNode-72" value="mounts /api" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-11" target="p4-UMLClassNode-15">
+        <mxCell id="p4-UMLClassNode-72" value="mounts /api" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-11" target="p4-UMLClassNode-15">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-73" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-15" target="p4-UMLClassNode-19">
+        <mxCell id="p4-UMLClassNode-73" value="«create»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-15" target="p4-UMLClassNode-19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-74" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-19" target="p4-UMLClassNode-23">
+        <mxCell id="p4-UMLClassNode-74" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-19" target="p4-UMLClassNode-23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-75" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-23" target="p4-UMLClassNode-27">
+        <mxCell id="p4-UMLClassNode-75" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-23" target="p4-UMLClassNode-27">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-76" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-23" target="p4-UMLClassNode-31">
+        <mxCell id="p4-UMLClassNode-76" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-23" target="p4-UMLClassNode-31">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-77" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-31" target="p4-UMLClassNode-35">
+        <mxCell id="p4-UMLClassNode-77" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-31" target="p4-UMLClassNode-35">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-78" value="uses" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-15" target="p4-UMLClassNode-43">
+        <mxCell id="p4-UMLClassNode-78" value="uses" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-15" target="p4-UMLClassNode-43">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="890" y="330" />
@@ -954,16 +948,16 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p4-UMLClassNode-79" value="uses" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-15" target="p4-UMLClassNode-45">
+        <mxCell id="p4-UMLClassNode-79" value="uses" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-15" target="p4-UMLClassNode-45">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-80" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-45" target="p4-UMLClassNode-49">
+        <mxCell id="p4-UMLClassNode-80" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-45" target="p4-UMLClassNode-49">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-81" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-51" target="p4-UMLClassNode-53">
+        <mxCell id="p4-UMLClassNode-81" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-51" target="p4-UMLClassNode-53">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-82" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-55" target="p4-UMLClassNode-51">
+        <mxCell id="p4-UMLClassNode-82" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-55" target="p4-UMLClassNode-51">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1020" y="990" />
@@ -971,7 +965,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p4-UMLClassNode-83" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-57" target="p4-UMLClassNode-51">
+        <mxCell id="p4-UMLClassNode-83" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-57" target="p4-UMLClassNode-51">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1250" y="990" />
@@ -979,10 +973,10 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p4-UMLClassNode-84" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-59" target="p4-UMLClassNode-51">
+        <mxCell id="p4-UMLClassNode-84" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;endSize=14;endFill=0;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-59" target="p4-UMLClassNode-51">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-85" value="instanceof" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-45" target="p4-UMLClassNode-51">
+        <mxCell id="p4-UMLClassNode-85" value="instanceof" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-45" target="p4-UMLClassNode-51">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1370" y="380" />
@@ -990,7 +984,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p4-UMLClassNode-86" value="throws" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-31" target="p4-UMLClassNode-51">
+        <mxCell id="p4-UMLClassNode-86" value="throws" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-31" target="p4-UMLClassNode-51">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1370" y="700" />
@@ -998,10 +992,10 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p4-UMLClassNode-87" value="«query»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-27" target="p4-UMLClassNode-39">
+        <mxCell id="p4-UMLClassNode-87" value="«query»" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-27" target="p4-UMLClassNode-39">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-88" value="returns" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-27" target="p4-UMLClassNode-61">
+        <mxCell id="p4-UMLClassNode-88" value="returns" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-27" target="p4-UMLClassNode-61">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="420" y="960" />
@@ -1009,10 +1003,10 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p4-UMLClassNode-89" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-61" target="p4-UMLClassNode-63">
+        <mxCell id="p4-UMLClassNode-89" value="" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-61" target="p4-UMLClassNode-63">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-UMLClassNode-90" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="p4-UMLClassNode-67" target="p4-UMLClassNode-63">
+        <mxCell id="p4-UMLClassNode-90" value="1" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-67" target="p4-UMLClassNode-63">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="20" y="560" />
@@ -1020,7 +1014,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p4-UMLClassNode-91" value="returns" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="p4-UMLClassNode-23" target="p4-UMLClassNode-67">
+        <mxCell id="p4-UMLClassNode-91" value="returns" style="html=1;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p4-UMLClassNode-23" target="p4-UMLClassNode-67">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="430" y="700" />
@@ -1063,7 +1057,7 @@
         <mxCell id="p5-UMLSequenceS-9" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="300" y="170" width="10" height="620" as="geometry" />
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-10" value="GET /api/companies/{companyId}/customers&lt;br&gt;?name=&amp;amp;country=&amp;amp;orderBy=" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-10" value="GET /api/companies/{companyId}/customers&lt;br&gt;?name=&amp;amp;country=&amp;amp;orderBy=" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="115" y="175" as="sourcePoint" />
             <mxPoint x="300" y="175" as="targetPoint" />
@@ -1072,7 +1066,7 @@
         <mxCell id="p5-UMLSequenceS-11" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="490" y="210" width="10" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-12" value="bind / validate(params, query)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-12" value="bind / validate(params, query)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="310" y="215" as="sourcePoint" />
             <mxPoint x="490" y="215" as="targetPoint" />
@@ -1093,13 +1087,13 @@
         <mxCell id="p5-UMLSequenceS-16" value="[valid]" style="text;html=1;align=left;verticalAlign=top;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;" vertex="1" parent="1">
           <mxGeometry x="210" y="322" width="400" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-17" value="400 {status, message, timestamp}" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-17" value="400 {status, message, timestamp}" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="490" y="300" as="sourcePoint" />
             <mxPoint x="115" y="300" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-18" value="companyId, name, country, orderBy" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-18" value="companyId, name, country, orderBy" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="490" y="360" as="sourcePoint" />
             <mxPoint x="310" y="360" as="targetPoint" />
@@ -1108,13 +1102,13 @@
         <mxCell id="p5-UMLSequenceS-19" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="680" y="410" width="10" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-20" value="search(companyId, name, country, orderBy)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-20" value="search(companyId, name, country, orderBy)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="310" y="415" as="sourcePoint" />
             <mxPoint x="680" y="415" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-21" value="blank filter → null / undefined&lt;br&gt;orderBy → &quot;id&quot; | &quot;name&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-21" value="blank filter → null / undefined&lt;br&gt;orderBy → &quot;id&quot; | &quot;name&quot;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="690" y="445" as="sourcePoint" />
             <mxPoint x="690" y="465" as="targetPoint" />
@@ -1127,7 +1121,7 @@
         <mxCell id="p5-UMLSequenceS-22" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="870" y="510" width="10" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-23" value="searchCustomersOrderBy{Id|Name}() / findByCompanyIdOrderBy…()&lt;br&gt;&lt;i&gt;search({companyId, name, country, orderBy})&lt;/i&gt;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-23" value="searchCustomersOrderBy{Id|Name}() / findByCompanyIdOrderBy…()&lt;br&gt;&lt;i&gt;search({companyId, name, country, orderBy})&lt;/i&gt;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="690" y="515" as="sourcePoint" />
             <mxPoint x="870" y="515" as="targetPoint" />
@@ -1136,25 +1130,25 @@
         <mxCell id="p5-UMLSequenceS-24" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="1055" y="560" width="10" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-25" value="SELECT … WHERE company_id = ?&lt;br&gt;AND name/country ILIKE &#39;%…%&#39; ORDER BY id|name" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-25" value="SELECT … WHERE company_id = ?&lt;br&gt;AND name/country ILIKE &#39;%…%&#39; ORDER BY id|name" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="880" y="565" as="sourcePoint" />
             <mxPoint x="1055" y="565" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-26" value="rows" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-26" value="rows" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1055" y="595" as="sourcePoint" />
             <mxPoint x="880" y="595" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-27" value="List&amp;lt;Customer&amp;gt; / CustomerRow[]" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-27" value="List&amp;lt;Customer&amp;gt; / CustomerRow[]" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="870" y="635" as="sourcePoint" />
             <mxPoint x="690" y="635" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-28" value="map → CustomerResponse (camelCase)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-28" value="map → CustomerResponse (camelCase)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="690" y="665" as="sourcePoint" />
             <mxPoint x="690" y="685" as="targetPoint" />
@@ -1164,13 +1158,13 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-29" value="{ total, customers[] }" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-29" value="{ total, customers[] }" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="680" y="735" as="sourcePoint" />
             <mxPoint x="310" y="735" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p5-UMLSequenceS-30" value="200 OK application/json" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p5-UMLSequenceS-30" value="200 OK application/json" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="300" y="785" as="sourcePoint" />
             <mxPoint x="115" y="785" as="targetPoint" />
@@ -1217,7 +1211,7 @@
         <mxCell id="p6-UMLSequenceP-10" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="290" y="170" width="10" height="900" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-11" value="GET /api/customers/{customerPk}&lt;br&gt;/pronounce?language=pt-br" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-11" value="GET /api/customers/{customerPk}&lt;br&gt;/pronounce?language=pt-br" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="110" y="175" as="sourcePoint" />
             <mxPoint x="290" y="175" as="targetPoint" />
@@ -1229,13 +1223,13 @@
         <mxCell id="p6-UMLSequenceP-13" value="[Node: &gt; PRONOUNCE_RATE_LIMIT_PER_MINUTE per IP]" style="text;html=1;align=left;verticalAlign=top;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;" vertex="1" parent="1">
           <mxGeometry x="130" y="197" width="340" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-14" value="429 Too Many Requests" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-14" value="429 Too Many Requests" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="290" y="245" as="sourcePoint" />
             <mxPoint x="110" y="245" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-15" value="validate customerPk (UUID)&lt;br&gt;language: pt-br → pt-BR (Node)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-15" value="validate customerPk (UUID)&lt;br&gt;language: pt-br → pt-BR (Node)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="300" y="275" as="sourcePoint" />
             <mxPoint x="300" y="295" as="targetPoint" />
@@ -1248,7 +1242,7 @@
         <mxCell id="p6-UMLSequenceP-16" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="475" y="330" width="10" height="710" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-17" value="pronounce(customerPk, &quot;pt-BR&quot;)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-17" value="pronounce(customerPk, &quot;pt-BR&quot;)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="300" y="335" as="sourcePoint" />
             <mxPoint x="475" y="335" as="targetPoint" />
@@ -1257,7 +1251,7 @@
         <mxCell id="p6-UMLSequenceP-18" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="660" y="365" width="10" height="105" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-19" value="findById / findByPk(customerPk)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-19" value="findById / findByPk(customerPk)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="485" y="370" as="sourcePoint" />
             <mxPoint x="660" y="370" as="targetPoint" />
@@ -1266,19 +1260,19 @@
         <mxCell id="p6-UMLSequenceP-20" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="840" y="395" width="10" height="45" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-21" value="SELECT … WHERE customer_pk = ?" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-21" value="SELECT … WHERE customer_pk = ?" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="670" y="400" as="sourcePoint" />
             <mxPoint x="840" y="400" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-22" value="row | none" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-22" value="row | none" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="840" y="435" as="sourcePoint" />
             <mxPoint x="670" y="435" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-23" value="Customer | null" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-23" value="Customer | null" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="660" y="465" as="sourcePoint" />
             <mxPoint x="485" y="465" as="targetPoint" />
@@ -1290,7 +1284,7 @@
         <mxCell id="p6-UMLSequenceP-25" value="[customer not found]" style="text;html=1;align=left;verticalAlign=top;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;" vertex="1" parent="1">
           <mxGeometry x="130" y="492" width="480" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-26" value="404 &quot;Customer not found: {pk}&quot;  (Java returns 500 via catch-all handler)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-26" value="404 &quot;Customer not found: {pk}&quot;  (Java returns 500 via catch-all handler)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="475" y="540" as="sourcePoint" />
             <mxPoint x="110" y="540" as="targetPoint" />
@@ -1299,13 +1293,13 @@
         <mxCell id="p6-UMLSequenceP-27" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="1030" y="580" width="10" height="430" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-28" value="synthesize(name, country, &quot;pt-BR&quot;)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-28" value="synthesize(name, country, &quot;pt-BR&quot;)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="485" y="585" as="sourcePoint" />
             <mxPoint x="1030" y="585" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-29" value="buildText → &quot;Ana Souza de Brasil&quot;&lt;br&gt;(pt / es use &quot;de&quot;, else &quot;from&quot;)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-29" value="buildText → &quot;Ana Souza de Brasil&quot;&lt;br&gt;(pt / es use &quot;de&quot;, else &quot;from&quot;)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1040" y="615" as="sourcePoint" />
             <mxPoint x="1040" y="635" as="targetPoint" />
@@ -1324,19 +1318,19 @@
         <mxCell id="p6-UMLSequenceP-32" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="1210" y="695" width="10" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-33" value="DescribeVoices(Engine=neural, LanguageCode=pt-BR)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-33" value="DescribeVoices(Engine=neural, LanguageCode=pt-BR)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1040" y="700" as="sourcePoint" />
             <mxPoint x="1210" y="700" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-34" value="Voices[] (Camila, Vitoria, …)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-34" value="Voices[] (Camila, Vitoria, …)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1210" y="730" as="sourcePoint" />
             <mxPoint x="1040" y="730" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-35" value="prefer AWS_POLLY_VOICE_ID, else first; cache" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-35" value="prefer AWS_POLLY_VOICE_ID, else first; cache" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;align=left;spacingLeft=4;verticalAlign=middle;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1040" y="755" as="sourcePoint" />
             <mxPoint x="1040" y="775" as="targetPoint" />
@@ -1349,13 +1343,13 @@
         <mxCell id="p6-UMLSequenceP-36" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;fillColor=#ffffff;" vertex="1" parent="1">
           <mxGeometry x="1210" y="830" width="10" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-37" value="SynthesizeSpeech(Text, VoiceId, LanguageCode,&lt;br&gt;OutputFormat=mp3, Engine=neural)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-37" value="SynthesizeSpeech(Text, VoiceId, LanguageCode,&lt;br&gt;OutputFormat=mp3, Engine=neural)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1040" y="835" as="sourcePoint" />
             <mxPoint x="1210" y="835" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-38" value="AudioStream (MP3)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-38" value="AudioStream (MP3)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1210" y="865" as="sourcePoint" />
             <mxPoint x="1040" y="865" as="targetPoint" />
@@ -1367,25 +1361,25 @@
         <mxCell id="p6-UMLSequenceP-40" value="[Polly error]" style="text;html=1;align=left;verticalAlign=top;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;" vertex="1" parent="1">
           <mxGeometry x="130" y="892" width="1390" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-41" value="Node: 400 unsupported language · 502 upstream failure  |  Java: 500 &quot;An unexpected error occurred&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-41" value="Node: 400 unsupported language · 502 upstream failure  |  Java: 500 &quot;An unexpected error occurred&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1030" y="940" as="sourcePoint" />
             <mxPoint x="110" y="940" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-42" value="byte[] / Buffer" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-42" value="byte[] / Buffer" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1030" y="1005" as="sourcePoint" />
             <mxPoint x="485" y="1005" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-43" value="mp3 bytes" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-43" value="mp3 bytes" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="475" y="1035" as="sourcePoint" />
             <mxPoint x="300" y="1035" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="p6-UMLSequenceP-44" value="200 audio/mpeg · Content-Disposition: inline; filename=&quot;{pk}-pronounce.mp3&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+        <mxCell id="p6-UMLSequenceP-44" value="200 audio/mpeg · Content-Disposition: inline; filename=&quot;{pk}-pronounce.mp3&quot;" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="290" y="1065" as="sourcePoint" />
             <mxPoint x="110" y="1065" as="targetPoint" />
@@ -1468,64 +1462,64 @@
         <mxCell id="p7-UMLActivityR-23" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#b85450;" vertex="1" parent="1">
           <mxGeometry x="1330" y="890" width="30" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-24" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-3" target="p7-UMLActivityR-4">
+        <mxCell id="p7-UMLActivityR-24" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-3" target="p7-UMLActivityR-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-25" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-4" target="p7-UMLActivityR-5">
+        <mxCell id="p7-UMLActivityR-25" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-4" target="p7-UMLActivityR-5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-26" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-5" target="p7-UMLActivityR-6">
+        <mxCell id="p7-UMLActivityR-26" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-5" target="p7-UMLActivityR-6">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-27" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-6" target="p7-UMLActivityR-7">
+        <mxCell id="p7-UMLActivityR-27" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-6" target="p7-UMLActivityR-7">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-28" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-6" target="p7-UMLActivityR-8">
+        <mxCell id="p7-UMLActivityR-28" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-6" target="p7-UMLActivityR-8">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-29" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-8" target="p7-UMLActivityR-9">
+        <mxCell id="p7-UMLActivityR-29" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-8" target="p7-UMLActivityR-9">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-30" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-9" target="p7-UMLActivityR-10">
+        <mxCell id="p7-UMLActivityR-30" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-9" target="p7-UMLActivityR-10">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-31" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-9" target="p7-UMLActivityR-11">
+        <mxCell id="p7-UMLActivityR-31" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-9" target="p7-UMLActivityR-11">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-32" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-11" target="p7-UMLActivityR-12">
+        <mxCell id="p7-UMLActivityR-32" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-11" target="p7-UMLActivityR-12">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-33" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-12" target="p7-UMLActivityR-13">
+        <mxCell id="p7-UMLActivityR-33" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-12" target="p7-UMLActivityR-13">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-34" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-12" target="p7-UMLActivityR-14">
+        <mxCell id="p7-UMLActivityR-34" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-12" target="p7-UMLActivityR-14">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-35" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-14" target="p7-UMLActivityR-15">
+        <mxCell id="p7-UMLActivityR-35" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-14" target="p7-UMLActivityR-15">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-36" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-15" target="p7-UMLActivityR-16">
+        <mxCell id="p7-UMLActivityR-36" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-15" target="p7-UMLActivityR-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-37" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-16" target="p7-UMLActivityR-17">
+        <mxCell id="p7-UMLActivityR-37" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-16" target="p7-UMLActivityR-17">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-38" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-15" target="p7-UMLActivityR-18">
+        <mxCell id="p7-UMLActivityR-38" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-15" target="p7-UMLActivityR-18">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-39" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-13" target="p7-UMLActivityR-18">
+        <mxCell id="p7-UMLActivityR-39" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-13" target="p7-UMLActivityR-18">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-40" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-18" target="p7-UMLActivityR-19">
+        <mxCell id="p7-UMLActivityR-40" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-18" target="p7-UMLActivityR-19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-41" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-19" target="p7-UMLActivityR-20">
+        <mxCell id="p7-UMLActivityR-41" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-19" target="p7-UMLActivityR-20">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-42" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-19" target="p7-UMLActivityR-21">
+        <mxCell id="p7-UMLActivityR-42" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-19" target="p7-UMLActivityR-21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p7-UMLActivityR-43" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-20" target="p7-UMLActivityR-22">
+        <mxCell id="p7-UMLActivityR-43" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-20" target="p7-UMLActivityR-22">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="690" y="1150" />
@@ -1533,33 +1527,205 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p7-UMLActivityR-44" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-21" target="p7-UMLActivityR-22">
+        <mxCell id="p7-UMLActivityR-44" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-21" target="p7-UMLActivityR-22">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1180" y="1088" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p7-UMLActivityR-45" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-7" target="p7-UMLActivityR-22">
+        <mxCell id="p7-UMLActivityR-45" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-7" target="p7-UMLActivityR-22">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1130" y="355" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p7-UMLActivityR-46" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-10" target="p7-UMLActivityR-22">
+        <mxCell id="p7-UMLActivityR-46" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-10" target="p7-UMLActivityR-22">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1130" y="535" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="p7-UMLActivityR-47" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;" edge="1" parent="1" source="p7-UMLActivityR-22" target="p7-UMLActivityR-23">
+        <mxCell id="p7-UMLActivityR-47" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p7-UMLActivityR-22" target="p7-UMLActivityR-23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="p7-UMLActivityR-48" value="&lt;b&gt;Status mapping: Java vs Node&lt;/b&gt;&lt;table border=&quot;1&quot; cellpadding=&quot;3&quot; style=&quot;border-collapse:collapse;margin-top:6px;font-size:11px&quot;&gt;&lt;tr&gt;&lt;th align=&quot;left&quot;&gt;Case&lt;/th&gt;&lt;th&gt;Java&lt;/th&gt;&lt;th&gt;Node&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;bad companyId / UUID&lt;/td&gt;&lt;td&gt;400&lt;/td&gt;&lt;td&gt;400&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;unknown orderBy&lt;/td&gt;&lt;td&gt;200 (id)&lt;/td&gt;&lt;td&gt;400&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;customer not found&lt;/td&gt;&lt;td&gt;500*&lt;/td&gt;&lt;td&gt;404&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;unsupported language&lt;/td&gt;&lt;td&gt;500&lt;/td&gt;&lt;td&gt;400&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Polly failure&lt;/td&gt;&lt;td&gt;500&lt;/td&gt;&lt;td&gt;502&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;rate limit&lt;/td&gt;&lt;td&gt;n/a&lt;/td&gt;&lt;td&gt;429&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;unknown route&lt;/td&gt;&lt;td&gt;404 / 500&lt;/td&gt;&lt;td&gt;404&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;br&gt;* ResponseStatusException is caught by the catch-all &lt;i&gt;@ExceptionHandler(Exception.class)&lt;/i&gt;." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;size=14;align=left;verticalAlign=top;spacingLeft=8;spacingRight=8;spacingTop=4;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
           <mxGeometry x="1200" y="90" width="360" height="300" as="geometry" />
         </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p8-UMLSequenceN" name="UML Sequence: NL assistant">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1375" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p8-UMLSequenceN-1" value="UML sequence: natural-language assistant (planned)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="30" y="10" width="1200" height="36" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-2" value="POST /api/assistant/requests → Bedrock extracts filters → search → Bedrock drafts one email per customer → preview → approval → SES. Same flow in the Java and Node services." style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#555555;whiteSpace=wrap;align=left;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="30" y="44" width="1400" height="36" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-34" value="&lt;b&gt;:portfolio-frontend&lt;/b&gt;&lt;br&gt;(user)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=50;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="30" y="100" width="160" height="1185" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-35" value="&lt;b&gt;:AssistantController&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=50;fontSize=11;fillColor=#ffffff;strokeColor=#333333;" vertex="1" parent="1"><mxGeometry x="220" y="100" width="160" height="1185" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-36" value="&lt;b&gt;:AssistantService&lt;/b&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=50;fontSize=11;fillColor=#ffffff;strokeColor=#333333;" vertex="1" parent="1"><mxGeometry x="410" y="100" width="160" height="1185" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-37" value="&lt;b&gt;Amazon Bedrock&lt;/b&gt;&lt;br&gt;InvokeModel" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=50;fontSize=11;fillColor=#d5f0e9;strokeColor=#01A88D;" vertex="1" parent="1"><mxGeometry x="600" y="100" width="160" height="1185" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-38" value="&lt;b&gt;:CustomerRepository&lt;/b&gt;&lt;br&gt;+ PostgreSQL" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=50;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="790" y="100" width="160" height="1185" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-39" value="&lt;b&gt;Amazon SES&lt;/b&gt;&lt;br&gt;SendEmail" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=50;fontSize=11;fillColor=#fce4ef;strokeColor=#E7157B;" vertex="1" parent="1"><mxGeometry x="980" y="100" width="160" height="1185" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-3" value="POST /api/assistant/requests&lt;br&gt;{ companyId, prompt }" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="110" y="185" as="sourcePoint"/><mxPoint x="300" y="185" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-4" value="handle(companyId, prompt)" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="229" as="sourcePoint"/><mxPoint x="490" y="229" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-5" value="extractFilters(prompt)&lt;br&gt;tool use / structured output" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="490" y="273" as="sourcePoint"/><mxPoint x="680" y="273" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-6" value="{ name?, country?, orderBy, limit }" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="680" y="329" as="sourcePoint"/><mxPoint x="490" y="329" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-7" value="validate: orderBy allowlist (id|name|birthDate), limit ≤ MAX_LIMIT, drop unknown fields" style="shape=note;size=8;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=4;" vertex="1" parent="1"><mxGeometry x="380" y="363" width="220" height="40" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-8" value="400 {status, message, timestamp}" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="490" y="429" as="sourcePoint"/><mxPoint x="300" y="429" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-9" value="400 Bad Request" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="459" as="sourcePoint"/><mxPoint x="110" y="459" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-10" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;width=60;height=22;fontStyle=1;fillColor=none;fontSize=11;" vertex="1" parent="1"><mxGeometry x="20" y="399" width="1130" height="90" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-11" value="[filters invalid or model output not parseable]  ·  otherwise continue" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;align=left;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="90" y="401" width="1050" height="20" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-12" value="search(companyId, filters)&lt;br&gt;SELECT … ORDER BY birth_date LIMIT ?" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="490" y="509" as="sourcePoint"/><mxPoint x="870" y="509" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-13" value="customers[] (id, name, country, birthDate, email)" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="870" y="565" as="sourcePoint"/><mxPoint x="490" y="565" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-14" value="422 too many recipients / 200 empty result" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="490" y="609" as="sourcePoint"/><mxPoint x="300" y="609" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-15" value="422 / 200 { drafts: [] }" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="639" as="sourcePoint"/><mxPoint x="110" y="639" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-16" value="alt" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;width=60;height=22;fontStyle=1;fillColor=none;fontSize=11;" vertex="1" parent="1"><mxGeometry x="20" y="579" width="1130" height="90" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-17" value="[no match or count &gt; MAX_RECIPIENTS]  ·  otherwise continue" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;align=left;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="90" y="581" width="1050" height="20" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-18" value="language = languageOf(country)&lt;br&gt;e.g. Brazil → pt-BR, Spain → es-ES" style="shape=note;size=8;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=4;" vertex="1" parent="1"><mxGeometry x="375" y="679" width="230" height="46" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-19" value="draftEmail(firstName, country, language)&lt;br&gt;only these fields are sent" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="490" y="751" as="sourcePoint"/><mxPoint x="680" y="751" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-20" value="{ subject, body } in the customer's language" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="680" y="807" as="sourcePoint"/><mxPoint x="490" y="807" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-21" value="loop" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;width=60;height=22;fontStyle=1;fillColor=none;fontSize=11;" vertex="1" parent="1"><mxGeometry x="20" y="725" width="1130" height="116" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-22" value="[for each matching customer]" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;align=left;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="90" y="727" width="1050" height="20" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-23" value="drafts[] + requestId" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="490" y="861" as="sourcePoint"/><mxPoint x="300" y="861" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-24" value="200 { requestId, drafts[] }  (preview)" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="905" as="sourcePoint"/><mxPoint x="110" y="905" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-25" value="user reviews, edits or removes drafts" style="shape=note;size=8;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=4;" vertex="1" parent="1"><mxGeometry x="-5" y="939" width="230" height="34" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-26" value="POST /api/assistant/requests/{id}/approve&lt;br&gt;{ approvedCustomerIds[] }" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="110" y="999" as="sourcePoint"/><mxPoint x="300" y="999" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-27" value="send(requestId, approvedIds)" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="1055" as="sourcePoint"/><mxPoint x="490" y="1055" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-28" value="SendEmail(to, subject, body)" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=block;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="490" y="1099" as="sourcePoint"/><mxPoint x="1060" y="1099" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-29" value="messageId" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1060" y="1143" as="sourcePoint"/><mxPoint x="490" y="1143" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-30" value="loop" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;width=60;height=22;fontStyle=1;fillColor=none;fontSize=11;" vertex="1" parent="1"><mxGeometry x="20" y="1073" width="1130" height="94" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-31" value="[for each approved draft]  ·  a per-message error is recorded and the loop continues" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;align=left;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="90" y="1075" width="1050" height="20" as="geometry"/></mxCell>
+        <mxCell id="p8-UMLSequenceN-32" value="{ sent, failed[] }" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="490" y="1187" as="sourcePoint"/><mxPoint x="300" y="1187" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="p8-UMLSequenceN-33" value="200 { sent, failed[] }" style="html=1;verticalAlign=bottom;curved=0;rounded=0;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;dashed=1;endSize=8;flowAnimation=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="1221" as="sourcePoint"/><mxPoint x="110" y="1221" as="targetPoint"/></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p9-UMLActivityN" name="UML Activity: NL assistant">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1632" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p9-UMLActivityN-1" value="UML activity: natural-language assistant pipeline (planned)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="30" y="10" width="1200" height="36" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-2" value="Decisions and guardrails: filter validation, recipient cap, human approval, per-message send errors. [yes] continues down; [no] exits to the right." style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#555555;whiteSpace=wrap;align=left;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="30" y="44" width="1400" height="36" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-3" value="" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="445" y="100" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-4" value="&lt;b&gt;POST /api/assistant/requests&lt;/b&gt;&lt;br&gt;{ companyId, prompt }" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="300" y="160" width="320" height="56" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-5" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-3" target="p9-UMLActivityN-4"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-6" value="&lt;b&gt;Bedrock&lt;/b&gt;: prompt → filters&lt;br&gt;(tool use / structured output)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="300" y="256" width="320" height="56" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-7" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-4" target="p9-UMLActivityN-6"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-8" value="filters&lt;br&gt;valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffc0;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1"><mxGeometry x="390" y="352" width="140" height="80" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-9" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-6" target="p9-UMLActivityN-8"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-10" value="&lt;b&gt;400 Bad Request&lt;/b&gt;&lt;br&gt;(orderBy allowlist, limit ≤ MAX_LIMIT)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="760" y="367" width="300" height="50" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-11" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-8" target="p9-UMLActivityN-10"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-12" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1180" y="377" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-13" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-10" target="p9-UMLActivityN-12"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-14" value="&lt;b&gt;Search customers&lt;/b&gt;&lt;br&gt;validated filters, ORDER BY … LIMIT" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="300" y="472" width="320" height="56" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-15" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-8" target="p9-UMLActivityN-14"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-16" value="matches?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffc0;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1"><mxGeometry x="390" y="568" width="140" height="80" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-17" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-14" target="p9-UMLActivityN-16"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-18" value="&lt;b&gt;200&lt;/b&gt; { drafts: [] }" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="760" y="583" width="300" height="50" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-19" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-16" target="p9-UMLActivityN-18"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-20" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1180" y="593" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-21" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-18" target="p9-UMLActivityN-20"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-22" value="count ≤&lt;br&gt;MAX_RECIPIENTS?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffc0;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1"><mxGeometry x="390" y="688" width="140" height="80" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-23" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-16" target="p9-UMLActivityN-22"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-24" value="&lt;b&gt;422&lt;/b&gt; too many recipients" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="760" y="703" width="300" height="50" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-25" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-22" target="p9-UMLActivityN-24"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-26" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1180" y="713" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-27" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-24" target="p9-UMLActivityN-26"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-28" value="language = languageOf(country)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="300" y="808" width="320" height="56" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-29" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-22" target="p9-UMLActivityN-28"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-30" value="&lt;b&gt;Bedrock&lt;/b&gt;: draft one email per customer&lt;br&gt;(firstName, country, language only)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="300" y="904" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-31" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-28" target="p9-UMLActivityN-30"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-32" value="&lt;b&gt;Return drafts&lt;/b&gt; (preview) + requestId" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="300" y="1004" width="320" height="56" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-33" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-30" target="p9-UMLActivityN-32"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-34" value="user&lt;br&gt;approved?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffc0;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1"><mxGeometry x="390" y="1100" width="140" height="80" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-35" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-32" target="p9-UMLActivityN-34"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-36" value="discard drafts (nothing sent)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="760" y="1115" width="300" height="50" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-37" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-34" target="p9-UMLActivityN-36"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-38" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1180" y="1125" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-39" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-36" target="p9-UMLActivityN-38"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-40" value="&lt;b&gt;SES SendEmail&lt;/b&gt; for each approved draft" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="300" y="1220" width="320" height="56" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-41" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-34" target="p9-UMLActivityN-40"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-42" value="send&lt;br&gt;ok?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffc0;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1"><mxGeometry x="390" y="1316" width="140" height="80" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-43" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-40" target="p9-UMLActivityN-42"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-44" value="record failure, continue&lt;br&gt;with the next draft" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="760" y="1331" width="300" height="50" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-45" value="[no]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-42" target="p9-UMLActivityN-44"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-46" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1180" y="1341" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-47" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-44" target="p9-UMLActivityN-46"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-48" value="&lt;b&gt;Return summary&lt;/b&gt;&lt;br&gt;{ sent, failed[] }" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1"><mxGeometry x="300" y="1436" width="320" height="56" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-49" value="[yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-42" target="p9-UMLActivityN-48"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p9-UMLActivityN-50" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="445" y="1512" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p9-UMLActivityN-51" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#b85450;fontSize=11;labelBackgroundColor=#ffffff;rounded=0;flowAnimation=1;" edge="1" parent="1" source="p9-UMLActivityN-48" target="p9-UMLActivityN-50"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p10-UMLStateE" name="UML State: Email job">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p10-UMLStateE-1" value="UML state machine: email job lifecycle (planned)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="30" y="10" width="1200" height="36" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-2" value="Only needed if drafts are persisted. One job per matching customer; the request as a whole is done when every job is terminal." style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#555555;whiteSpace=wrap;align=left;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="30" y="44" width="1400" height="36" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-3" value="" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#333333;" vertex="1" parent="1"><mxGeometry x="60" y="285" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-4" value="&lt;b&gt;DRAFTED&lt;/b&gt;&lt;br&gt;Bedrock wrote subject + body" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="150" y="270" width="170" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-5" value="&lt;b&gt;PENDING_APPROVAL&lt;/b&gt;&lt;br&gt;preview shown to user" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="400" y="270" width="190" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-6" value="&lt;b&gt;APPROVED&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="680" y="270" width="150" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-7" value="&lt;b&gt;SENDING&lt;/b&gt;&lt;br&gt;SES SendEmail" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="910" y="270" width="160" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-8" value="&lt;b&gt;SENT&lt;/b&gt;&lt;br&gt;SES messageId stored" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1160" y="180" width="180" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-9" value="&lt;b&gt;FAILED&lt;/b&gt;&lt;br&gt;error stored" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1160" y="360" width="180" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-10" value="&lt;b&gt;REJECTED&lt;/b&gt;&lt;br&gt;user removed the draft" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1"><mxGeometry x="400" y="100" width="190" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-11" value="&lt;b&gt;EXPIRED&lt;/b&gt;&lt;br&gt;no approval in time" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1"><mxGeometry x="400" y="470" width="190" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-12" value="&lt;b&gt;GAVE_UP&lt;/b&gt;&lt;br&gt;retries exhausted" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1"><mxGeometry x="1160" y="520" width="180" height="60" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-13" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#333333;" vertex="1" parent="1"><mxGeometry x="1400" y="195" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p10-UMLStateE-14" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-3" target="p10-UMLStateE-4"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-15" value="drafts returned" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-4" target="p10-UMLStateE-5"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-16" value="approve" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-5" target="p10-UMLStateE-6"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-17" value="send" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-6" target="p10-UMLStateE-7"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-18" value="accepted by SES" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-7" target="p10-UMLStateE-8"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-19" value="error / throttled" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-7" target="p10-UMLStateE-9"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-20" value="remove / reject" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-5" target="p10-UMLStateE-10"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-21" value="TTL elapsed" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-5" target="p10-UMLStateE-11"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-22" value="retry (attempt &lt; N, backoff)" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;entryX=0.5;entryY=1;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-9" target="p10-UMLStateE-7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="990" y="390"/></Array></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-23" value="attempt = N" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-9" target="p10-UMLStateE-12"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-24" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=open;endSize=8;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p10-UMLStateE-8" target="p10-UMLStateE-13"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p10-UMLStateE-25" value="SENT, REJECTED, EXPIRED and GAVE_UP are terminal. Each transition is written to the audit log." style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#555555;align=left;" vertex="1" parent="1"><mxGeometry x="150" y="620" width="900" height="30" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="p11-DataFlowN" name="Data flow: NL assistant">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p11-DataFlowN-1" value="Data flow and trust boundaries: natural-language assistant (planned)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="30" y="10" width="1200" height="36" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-2" value="What crosses each boundary. The model never receives the customer table or email addresses; the recipient cap, approval step and IAM scope limit what an action can do." style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#555555;whiteSpace=wrap;align=left;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="30" y="44" width="1400" height="36" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-3" value="&lt;b&gt;Trusted zone: ECS task (Java or Node service)&lt;/b&gt;" style="rounded=0;arcSize=4;dashed=1;fillColor=none;html=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=12;strokeColor=#2E73B8;fontColor=#2E73B8;" vertex="1" parent="1"><mxGeometry x="300" y="110" width="760" height="560" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-4" value="&lt;b&gt;User&lt;/b&gt;&lt;br&gt;portfolio-frontend (browser)" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="30" y="340" width="190" height="70" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-5" value="&lt;b&gt;AssistantController&lt;/b&gt;&lt;br&gt;auth, request size limit" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="340" y="160" width="220" height="60" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-6" value="&lt;b&gt;Validation&lt;/b&gt;&lt;br&gt;allowlist orderBy · limit ≤ MAX_LIMIT&lt;br&gt;drop unknown fields" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="340" y="300" width="220" height="70" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-7" value="&lt;b&gt;AssistantService&lt;/b&gt;&lt;br&gt;cap · country→language · audit log" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="340" y="450" width="220" height="70" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-8" value="&lt;b&gt;Approval gate&lt;/b&gt;&lt;br&gt;send only approved ids" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="780" y="450" width="220" height="60" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-9" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br&gt;table customer" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="780" y="190" width="220" height="70" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-10" value="&lt;b&gt;Amazon Bedrock&lt;/b&gt;&lt;br&gt;InvokeModel" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d5f0e9;strokeColor=#01A88D;" vertex="1" parent="1"><mxGeometry x="1250" y="250" width="200" height="70" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-11" value="&lt;b&gt;Amazon SES&lt;/b&gt;&lt;br&gt;SendEmail" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fillColor=#fce4ef;strokeColor=#E7157B;" vertex="1" parent="1"><mxGeometry x="1250" y="600" width="200" height="70" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-12" value="1  prompt (free text)" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-4" target="p11-DataFlowN-5"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="120" y="190"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-13" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-5" target="p11-DataFlowN-6"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-14" value="2  prompt only" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;strokeColor=#01A88D;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-5" target="p11-DataFlowN-10"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="600" y="160"/><mxPoint x="1350" y="160"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-15" value="3  filters JSON (untrusted)" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;strokeColor=#01A88D;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-10" target="p11-DataFlowN-6"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1350" y="335"/><mxPoint x="450" y="335"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-16" value="4  validated filters" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-6" target="p11-DataFlowN-7"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-17" value="5  parameterized query" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-7" target="p11-DataFlowN-9"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="620" y="485"/><mxPoint x="620" y="225"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-18" value="6  customer rows" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-9" target="p11-DataFlowN-7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="700" y="225"/><mxPoint x="700" y="505"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-19" value="7  per customer: firstName, country, language" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;strokeColor=#01A88D;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-7" target="p11-DataFlowN-10"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="600" y="540"/><mxPoint x="1130" y="540"/><mxPoint x="1130" y="300"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-20" value="8  subject + body" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;strokeColor=#01A88D;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-10" target="p11-DataFlowN-7"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1400" y="380"/><mxPoint x="1400" y="560"/><mxPoint x="560" y="560"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-21" value="9  drafts (preview) + requestId" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-7" target="p11-DataFlowN-4"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="450" y="630"/><mxPoint x="125" y="630"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-22" value="10  approve(ids)" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-4" target="p11-DataFlowN-8"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="125" y="740"/><mxPoint x="890" y="740"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-23" value="11  to (email), subject, body" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;endArrow=block;endFill=1;strokeWidth=2;fontSize=11;labelBackgroundColor=#ffffff;strokeColor=#E7157B;flowAnimation=1;" edge="1" parent="1" source="p11-DataFlowN-8" target="p11-DataFlowN-11"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1130" y="480"/><mxPoint x="1130" y="635"/></Array></mxGeometry></mxCell>
+        <mxCell id="p11-DataFlowN-24" value="&lt;b&gt;Guardrails&lt;/b&gt;&lt;br&gt;① orderBy/limit allowlist, unknown fields dropped&lt;br&gt;② model output is untrusted: never used as SQL&lt;br&gt;③ MAX_RECIPIENTS cap per request&lt;br&gt;④ human approval before any send&lt;br&gt;⑤ audit log: prompt, filters, ids, sender&lt;br&gt;⑥ task role: bedrock:InvokeModel (one model), ses:SendEmail (verified identity)" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;strokeColor=#cccccc;fillColor=#ffffff;spacing=6;" vertex="1" parent="1"><mxGeometry x="30" y="800" width="760" height="150" as="geometry"/></mxCell>
+        <mxCell id="p11-DataFlowN-25" value="&lt;b&gt;Bedrock sees&lt;/b&gt;: the prompt and, per email, first name + country + language.&lt;br&gt;&lt;b&gt;Bedrock never sees&lt;/b&gt;: the customer table, email addresses, ids, other columns." style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;align=left;verticalAlign=top;strokeColor=#cccccc;fillColor=#ffffff;spacing=6;" vertex="1" parent="1"><mxGeometry x="830" y="800" width="700" height="80" as="geometry"/></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

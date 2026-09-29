@@ -66,6 +66,19 @@ The frontend calls the Customers API, which queries PostgreSQL for customer data
 - **Name pronunciation** — synthesizes "`{name} from {country}`" as MP3 audio via [AWS Polly](https://aws.amazon.com/polly/) Neural TTS, auto-selecting a native voice for the requested language.
 - **OpenAPI / Swagger UI** documentation out of the box.
 
+## Roadmap (planned)
+
+**Natural-language customer assistant** — ask for customers in plain language and act on the result, e.g. *"write a birthday greeting email for the 20 oldest customers, in the main language of each customer's country"*.
+
+1. **Understand** — [Amazon Bedrock](https://aws.amazon.com/bedrock/) (tool use / structured output) turns the request into the existing search filters (`name`, `country`, `orderBy`, plus a new `limit` and a `birthDate` sort). The database stays the source of truth and the model never sees the whole table.
+2. **Search** — the service runs the normal customer search with those validated filters.
+3. **Act** — Bedrock drafts one email per matching customer in the main language of the customer's country.
+4. **Deliver** — [Amazon SES](https://aws.amazon.com/ses/) sends the emails, with a preview/approval step and a cap on recipients per request.
+
+Both services (Java and Node) call Bedrock and SES through the ECS task role (`bedrock:InvokeModel`, `ses:SendEmail`). See the *Planned: NL assistant* box and the four assistant pages (sequence, activity, email-job state machine, data flow) in [docs/customers-api.drawio](docs/customers-api.drawio).
+
+Open points: the schema needs a `birthDate` and an email address per customer, and a country → language mapping (a fixed lookup is more predictable than asking the model). Kendra was considered and dropped: it ranks text relevance and cannot sort or filter structured rows, and it is costly to run.
+
 ## Tech stack
 
 - Java 25, Spring Boot 4.1
