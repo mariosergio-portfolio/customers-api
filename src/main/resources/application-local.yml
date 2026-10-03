@@ -4,8 +4,3 @@ spring:
     username: postgres
     password: 123
     driver-class-name: org.postgresql.Driver
-
-aws:
-  bedrock:
-    # AI21 Jamba 1.5 Mini. The default in application.yml is unchanged; AWS_BEDROCK_MODEL_ID overrides this.
-    model-id: ${AWS_BEDROCK_MODEL_ID:ai21.jamba-1-5-mini-v1:0}
