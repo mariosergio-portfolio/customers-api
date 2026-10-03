@@ -30,9 +30,9 @@ public class CompanyAssistantController {
     @Operation(
             summary = "Ask a question about a company's customers",
             description = """
-                    The model receives only the table structure and the prompt, and generates a SQL query.
-                    The service validates it and runs it read-only, scoped to the company, and returns the rows
-                    with the SQL used. No customer data is sent to the model.
+                    The model receives only the table structure and the prompt, and replies with a SQL query and
+                    a short human-readable message. The service validates the query, runs it read-only scoped to
+                    the company, and returns the message, the SQL and the rows. No customer data is sent to the model.
                     """
     )
     @ApiResponses({

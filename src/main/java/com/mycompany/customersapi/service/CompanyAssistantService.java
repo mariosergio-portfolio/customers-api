@@ -1,5 +1,7 @@
 package com.mycompany.customersapi.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.customersapi.dto.CompanyQueryResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +21,10 @@ import java.util.Map;
 /**
  * Answers free-text questions about a company's customers without sending customer data to the model.
  *
- * The model only sees the table structure (DDL) and the question, and replies with a SQL query.
- * The service then runs that query itself and returns the rows. Three layers keep this safe,
+ * The model only sees the table structure (DDL) and the question, and replies with a SQL query plus
+ * a short human-readable message about it. The service runs the query itself and returns the message,
+ * the SQL and the rows. The message is written before the model could see any data, so it describes
+ * what is being returned and never states results. Three layers keep this safe,
  * none of which depends on the model behaving:
  *   1. {@link CompanyQueryValidator}: a single plain SELECT over the unqualified customer table.
  *   2. A CTE named {@code customer}, prepended to the query, that exposes only this company's rows
@@ -31,8 +35,6 @@ import java.util.Map;
 @Service
 @Slf4j
 public class CompanyAssistantService {
-
-    static final String NO_QUERY = "NO_QUERY";
 
     /** Columns visible to the model. Keep in sync with {@link #SCHEMA} and the CTE in {@link #scopedQuery}. */
     private static final String VISIBLE_COLUMNS = "id, name, email, age, country, phone, created_at";
@@ -53,12 +55,14 @@ public class CompanyAssistantService {
     private final CustomerRepository customerRepository;
     private final BedrockService     bedrockService;
     private final CompanyQueryValidator validator;
+    private final ObjectMapper       objectMapper;
     private final JdbcTemplate       jdbc;
     private final TransactionTemplate readOnlyTx;
 
     public CompanyAssistantService(CustomerRepository customerRepository,
                                    BedrockService bedrockService,
                                    CompanyQueryValidator validator,
+                                   ObjectMapper objectMapper,
                                    DataSource dataSource,
                                    PlatformTransactionManager txManager,
                                    @Value("${aws.bedrock.company-query-max-rows:100}") int maxRows,
@@ -66,6 +70,7 @@ public class CompanyAssistantService {
         this.customerRepository = customerRepository;
         this.bedrockService = bedrockService;
         this.validator = validator;
+        this.objectMapper = objectMapper;
         this.jdbc = new JdbcTemplate(dataSource);
         this.jdbc.setMaxRows(maxRows);
         this.jdbc.setQueryTimeout(timeoutSeconds);
@@ -78,15 +83,15 @@ public class CompanyAssistantService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found: " + companyId);
         }
 
-        String generated = bedrockService.ask(systemPrompt(), prompt);
-        String sql = validator.validate(extractSql(generated));
+        ModelReply reply = parseReply(bedrockService.ask(systemPrompt(), prompt));
+        String sql = validator.validate(reply.sql());
         log.info("Company ask: companyId={}, generated SQL: {}", companyId, sql);
 
         try {
             // The model call above runs outside the transaction so no DB connection is held while waiting on Bedrock.
             List<Map<String, Object>> rows = readOnlyTx.execute(
                     status -> jdbc.queryForList(scopedQuery(companyId, sql)));
-            return new CompanyQueryResponse(sql, rows.size(), rows);
+            return new CompanyQueryResponse(reply.message(), sql, rows.size(), rows);
         } catch (DataAccessException e) {
             log.warn("Generated SQL failed: {}", e.getMostSpecificCause().getMessage());
             throw new GeneratedQueryException("The generated query failed to run: "
@@ -96,31 +101,50 @@ public class CompanyAssistantService {
 
     String systemPrompt() {
         return """
-                You translate a user's question about a company's customers into one PostgreSQL query.
+                You turn a user's question about a company's customers into one PostgreSQL query and a short message.
                 The data is in this table:
 
                 %s
-                Rules:
-                - Reply with exactly one SELECT statement and nothing else: no explanation, no markdown.
+                Reply with one JSON object and nothing else (no markdown), with these fields:
+                - "message": one or two friendly sentences, in the language of the question, saying what the
+                  query returns for the user. You have not seen any data, so do not state results, counts or names.
+                - "sql": exactly one SELECT statement.
+
+                SQL rules:
                 - Use only the table customer and only the columns above.
                 - Do not filter by company: the table already contains only the company's customers.
                 - Use only these functions: count, sum, avg, min, max, round, abs, ceil, floor, lower, upper,
                   length, trim, substring, concat, coalesce, nullif, date_trunc, now, row_number, rank, dense_rank.
                 - Match text case-insensitively, for example lower(country) = 'france'.
-                - If the question cannot be answered from this table, reply exactly: %s
-                """.formatted(SCHEMA, NO_QUERY);
+                - If the question cannot be answered from this table, set "sql" to null and use "message" to say why.
+                """.formatted(SCHEMA);
     }
 
-    /** Strips a markdown fence and a trailing semicolon; rejects the model's "cannot answer" reply. */
-    String extractSql(String reply) {
-        String sql = reply == null ? "" : reply.trim();
-        if (sql.startsWith("```")) {
-            sql = sql.replaceFirst("^```[a-zA-Z]*\\s*", "").replaceFirst("\\s*```\\s*$", "").trim();
+    /** What the model replied: a message for the user and the SQL to run. */
+    record ModelReply(String message, String sql) {
+    }
+
+    /** Parses the model's JSON reply, tolerating a markdown fence or text around the object. */
+    ModelReply parseReply(String reply) {
+        String text = reply == null ? "" : reply.trim();
+        int start = text.indexOf('{');
+        int end = text.lastIndexOf('}');
+        if (start < 0 || end <= start) {
+            throw new GeneratedQueryException("The model did not return the expected JSON reply");
         }
-        if (sql.equals(NO_QUERY)) {
-            throw new GeneratedQueryException("The question cannot be answered from the customer data");
+        JsonNode json;
+        try {
+            json = objectMapper.readTree(text.substring(start, end + 1));
+        } catch (Exception e) {
+            throw new GeneratedQueryException("The model did not return the expected JSON reply", e);
         }
-        return sql.replaceFirst("\\s*;\\s*$", "");
+        String message = json.path("message").asText("").trim();
+        String sql = json.path("sql").isTextual() ? json.path("sql").asText().trim() : "";
+        if (sql.isEmpty()) {
+            throw new GeneratedQueryException(message.isEmpty()
+                    ? "The question cannot be answered from the customer data" : message);
+        }
+        return new ModelReply(message, sql.replaceFirst("\\s*;\\s*$", ""));
     }
 
     /** Shadows the customer table with this company's rows. companyId is a Long, so it cannot inject SQL. */
