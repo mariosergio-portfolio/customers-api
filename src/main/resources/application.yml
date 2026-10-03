@@ -3,6 +3,11 @@ server:
   servlet:
     context-path: /customers # must be same of cloudFormation variable $AppServiceName (used by ALB rule)
 
+# Database schema holding the customer table. Single source of truth for JPA, Flyway and the SQL
+# that /companies/{companyId}/ask runs. Override per environment in application-<profile>.yml.
+app:
+  db-schema: customer_app
+
 spring:
   application:
     name: customers-api
@@ -17,12 +22,12 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-        default_schema: customer_app
+        default_schema: ${app.db-schema}
 
   flyway:
     enabled: true
     locations: classpath:db/migration
-    schemas: customer_app
+    schemas: ${app.db-schema}
     # This tells Flyway: on a non-empty schema with no history table, just record a baseline at version 0 instead of erroring out,
     # then apply every migration with a version above that — which is both V1
     # only required if you have an existing schema with no flyway history table,
