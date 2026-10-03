@@ -12,6 +12,8 @@ import java.util.UUID;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
+    boolean existsByCompanyId(Long companyId);
+
     List<Customer> findByCompanyIdOrderByNameAsc(Long companyId);
 
     List<Customer> findByCompanyIdOrderByIdAsc(Long companyId);
