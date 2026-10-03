@@ -1,6 +1,7 @@
 package com.mycompany.customersapi.config;
 
 import com.mycompany.customersapi.service.BedrockService;
+import com.mycompany.customersapi.service.GeneratedQueryException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBedrock(BedrockService.BedrockException ex) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(new ErrorResponse(HttpStatus.BAD_GATEWAY.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(GeneratedQueryException.class)
+    public ResponseEntity<ErrorResponse> handleGeneratedQuery(GeneratedQueryException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
