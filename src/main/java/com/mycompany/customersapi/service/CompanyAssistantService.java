@@ -66,7 +66,7 @@ public class CompanyAssistantService {
                                    ObjectMapper objectMapper,
                                    DataSource dataSource,
                                    PlatformTransactionManager txManager,
-                                   @Value("${app.db-schema}") String schema,
+                                   @Value("${spring.jpa.properties.hibernate.default_schema}") String schema,
                                    @Value("${aws.bedrock.company-query-max-rows:100}") int maxRows,
                                    @Value("${aws.bedrock.company-query-timeout-seconds:5}") int timeoutSeconds) {
         this.customerRepository = customerRepository;
@@ -74,7 +74,7 @@ public class CompanyAssistantService {
         this.validator = validator;
         this.objectMapper = objectMapper;
         if (schema == null || !schema.matches("[A-Za-z_][A-Za-z0-9_]*")) {
-            throw new IllegalArgumentException("app.db-schema is not a valid schema name: " + schema);
+            throw new IllegalArgumentException("hibernate.default_schema is not a valid schema name: " + schema);
         }
         this.schema = schema;
         this.jdbc = new JdbcTemplate(dataSource);
