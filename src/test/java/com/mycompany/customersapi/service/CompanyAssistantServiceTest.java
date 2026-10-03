@@ -1,5 +1,6 @@
 package com.mycompany.customersapi.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.customersapi.repository.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class CompanyAssistantServiceTest {
     void setUp() {
         repository = mock(CustomerRepository.class);
         bedrock = mock(BedrockService.class);
-        service = new CompanyAssistantService(repository, bedrock, new CompanyQueryValidator(),
+        service = new CompanyAssistantService(repository, bedrock, new CompanyQueryValidator(), new ObjectMapper(),
                 mock(DataSource.class), mock(PlatformTransactionManager.class), 100, 5);
     }
 
@@ -29,18 +30,33 @@ class CompanyAssistantServiceTest {
     void systemPromptHasSchemaButNoCustomerData() {
         String prompt = service.systemPrompt();
         assertTrue(prompt.contains("CREATE TABLE customer"));
-        assertTrue(prompt.contains(CompanyAssistantService.NO_QUERY));
+        assertTrue(prompt.contains("\"message\""));
+        assertTrue(prompt.contains("\"sql\""));
     }
 
     @Test
-    void extractSqlStripsFenceAndSemicolon() {
-        assertEquals("SELECT 1", service.extractSql("```sql\nSELECT 1;\n```"));
-        assertEquals("SELECT 1", service.extractSql("  SELECT 1 ;  "));
+    void parseReplyReadsMessageAndSql() {
+        var reply = service.parseReply("{\"message\": \"Here are your customers.\", \"sql\": \"SELECT 1;\"}");
+        assertEquals("Here are your customers.", reply.message());
+        assertEquals("SELECT 1", reply.sql());
     }
 
     @Test
-    void noQueryReplyIsRejected() {
-        assertThrows(GeneratedQueryException.class, () -> service.extractSql("NO_QUERY"));
+    void parseReplyToleratesMarkdownFence() {
+        var reply = service.parseReply("```json\n{\"message\": \"Hi\", \"sql\": \"SELECT 1\"}\n```");
+        assertEquals("SELECT 1", reply.sql());
+    }
+
+    @Test
+    void nullSqlIsRejectedWithTheModelMessage() {
+        var ex = assertThrows(GeneratedQueryException.class,
+                () -> service.parseReply("{\"message\": \"No such column.\", \"sql\": null}"));
+        assertEquals("No such column.", ex.getMessage());
+    }
+
+    @Test
+    void nonJsonReplyIsRejected() {
+        assertThrows(GeneratedQueryException.class, () -> service.parseReply("SELECT * FROM customer"));
     }
 
     @Test
@@ -61,14 +77,14 @@ class CompanyAssistantServiceTest {
     @Test
     void rejectedSqlIsNeverExecuted() {
         when(repository.existsByCompanyId(1L)).thenReturn(true);
-        when(bedrock.ask(anyString(), eq("q"))).thenReturn("DELETE FROM customer");
+        when(bedrock.ask(anyString(), eq("q"))).thenReturn("{\"message\": \"x\", \"sql\": \"DELETE FROM customer\"}");
         assertThrows(GeneratedQueryException.class, () -> service.ask(1L, "q"));
     }
 
     @Test
     void customerRowsAreNotSentToTheModel() {
         when(repository.existsByCompanyId(1L)).thenReturn(true);
-        when(bedrock.ask(anyString(), eq("q"))).thenReturn("DROP TABLE customer");
+        when(bedrock.ask(anyString(), eq("q"))).thenReturn("{\"message\": \"x\", \"sql\": \"DROP TABLE customer\"}");
         assertThrows(GeneratedQueryException.class, () -> service.ask(1L, "q"));
         verify(repository, never()).findByCompanyIdOrderByIdAsc(any());
     }
