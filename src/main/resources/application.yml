@@ -77,6 +77,7 @@ aws:
     region: ${AWS_BEDROCK_REGION:${AWS_REGION:us-east-1}}
     # Must be a model (or cross-region inference profile) enabled in your account/region.
     model-id: ${AWS_BEDROCK_MODEL_ID:ai21.jamba-1-5-mini-v1:0}
+    # model-id: ${AWS_BEDROCK_MODEL_ID:us.anthropic.claude-sonnet-4-5-20250929-v1:0}
     max-tokens: ${AWS_BEDROCK_MAX_TOKENS:1024}
     # /companies/{companyId}/ask: the model generates SQL, the service runs it read-only.
     company-query-max-rows: ${AWS_BEDROCK_COMPANY_QUERY_MAX_ROWS:100}
