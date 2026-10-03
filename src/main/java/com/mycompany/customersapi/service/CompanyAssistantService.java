@@ -56,6 +56,7 @@ public class CompanyAssistantService {
     private final BedrockService     bedrockService;
     private final CompanyQueryValidator validator;
     private final ObjectMapper       objectMapper;
+    private final String             schema;
     private final JdbcTemplate       jdbc;
     private final TransactionTemplate readOnlyTx;
 
@@ -65,12 +66,17 @@ public class CompanyAssistantService {
                                    ObjectMapper objectMapper,
                                    DataSource dataSource,
                                    PlatformTransactionManager txManager,
+                                   @Value("${app.db-schema}") String schema,
                                    @Value("${aws.bedrock.company-query-max-rows:100}") int maxRows,
                                    @Value("${aws.bedrock.company-query-timeout-seconds:5}") int timeoutSeconds) {
         this.customerRepository = customerRepository;
         this.bedrockService = bedrockService;
         this.validator = validator;
         this.objectMapper = objectMapper;
+        if (schema == null || !schema.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+            throw new IllegalArgumentException("app.db-schema is not a valid schema name: " + schema);
+        }
+        this.schema = schema;
         this.jdbc = new JdbcTemplate(dataSource);
         this.jdbc.setMaxRows(maxRows);
         this.jdbc.setQueryTimeout(timeoutSeconds);
@@ -148,8 +154,8 @@ public class CompanyAssistantService {
     }
 
     /** Shadows the customer table with this company's rows. companyId is a Long, so it cannot inject SQL. */
-    static String scopedQuery(Long companyId, String validatedSql) {
-        return "WITH customer AS (SELECT " + VISIBLE_COLUMNS + " FROM public.customer WHERE company_id = "
+    String scopedQuery(Long companyId, String validatedSql) {
+        return "WITH customer AS (SELECT " + VISIBLE_COLUMNS + " FROM " + schema + ".customer WHERE company_id = "
                 + companyId.longValue() + ") " + validatedSql;
     }
 }

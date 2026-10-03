@@ -23,7 +23,7 @@ class CompanyAssistantServiceTest {
         repository = mock(CustomerRepository.class);
         bedrock = mock(BedrockService.class);
         service = new CompanyAssistantService(repository, bedrock, new CompanyQueryValidator(), new ObjectMapper(),
-                mock(DataSource.class), mock(PlatformTransactionManager.class), 100, 5);
+                mock(DataSource.class), mock(PlatformTransactionManager.class), "customer_app", 100, 5);
     }
 
     @Test
@@ -61,9 +61,9 @@ class CompanyAssistantServiceTest {
 
     @Test
     void scopedQueryShadowsCustomerWithThisCompanyOnly() {
-        String sql = CompanyAssistantService.scopedQuery(7L, "SELECT name FROM customer");
+        String sql = service.scopedQuery(7L, "SELECT name FROM customer");
         assertEquals("WITH customer AS (SELECT id, name, email, age, country, phone, created_at "
-                + "FROM public.customer WHERE company_id = 7) SELECT name FROM customer", sql);
+                + "FROM customer_app.customer WHERE company_id = 7) SELECT name FROM customer", sql);
     }
 
     @Test
@@ -87,5 +87,12 @@ class CompanyAssistantServiceTest {
         when(bedrock.ask(anyString(), eq("q"))).thenReturn("{\"message\": \"x\", \"sql\": \"DROP TABLE customer\"}");
         assertThrows(GeneratedQueryException.class, () -> service.ask(1L, "q"));
         verify(repository, never()).findByCompanyIdOrderByIdAsc(any());
+    }
+
+    @Test
+    void invalidSchemaNameIsRejected() {
+        assertThrows(IllegalArgumentException.class, () -> new CompanyAssistantService(repository, bedrock,
+                new CompanyQueryValidator(), new ObjectMapper(), mock(DataSource.class),
+                mock(PlatformTransactionManager.class), "x; DROP TABLE customer", 100, 5));
     }
 }
