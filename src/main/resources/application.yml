@@ -72,3 +72,10 @@ aws:
    # not required if logged with: aws login command
    # access-key: ${AWS_ACCESS_KEY_ID:}
    # secret-key: ${AWS_SECRET_ACCESS_KEY:}
+
+  bedrock:
+    region: ${AWS_BEDROCK_REGION:${AWS_REGION:us-east-1}}
+    # Must be a model (or cross-region inference profile) enabled in your account/region.
+    model-id: ${AWS_BEDROCK_MODEL_ID:us.anthropic.claude-sonnet-4-5-20250929-v1:0}
+    max-tokens: ${AWS_BEDROCK_MAX_TOKENS:1024}
+    # Credentials: default AWS chain (aws login / env vars / profile / IAM role).

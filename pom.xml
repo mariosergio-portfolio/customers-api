@@ -97,6 +97,12 @@
             <artifactId>polly</artifactId>
             <version>${aws.sdk.version}</version>
         </dependency>
+        <!-- AWS SDK v2 – Bedrock Runtime (Converse API) -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bedrockruntime</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
         <!-- Enables credentials from `aws login` sessions (login_session in ~/.aws/config) -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
