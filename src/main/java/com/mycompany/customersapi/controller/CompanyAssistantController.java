@@ -30,7 +30,7 @@ public class CompanyAssistantController {
     @Operation(
             summary = "Ask the model about a company",
             description = "Sends the prompt to the Bedrock model together with the company's customers "
-                    + "(id, name, age, country) as context, and returns the model's reply."
+                    + "(id, name, email, age, country, phone) as context, and returns the model's reply."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Model replied"),

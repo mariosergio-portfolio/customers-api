@@ -14,9 +14,9 @@ import java.util.List;
 /**
  * Answers free-text questions about a company by sending its customers to Bedrock as context.
  *
- * Only id, name, age and country are sent: email and phone are left out so personal contact
- * data is not shared with the model. At most {@code company-context-max-customers} customers
- * are included, which bounds the prompt size (and the Bedrock token quota used per call).
+ * Each customer's id, name, email, age, country and phone are sent, so personal data leaves the
+ * service for Bedrock. At most {@code company-context-max-customers} customers are included,
+ * which bounds the prompt size (and the Bedrock token quota used per call).
  */
 @Service
 @RequiredArgsConstructor
@@ -50,12 +50,14 @@ public class CompanyAssistantService {
             sb.append("; only the first ").append(included).append(" (by id) are listed, so say that counts and ")
               .append("rankings may be partial");
         }
-        sb.append(".\n<customers>\nid|name|age|country\n");
+        sb.append(".\n<customers>\nid|name|email|age|country|phone\n");
         customers.stream().limit(included).forEach(c -> sb
                 .append(c.getId()).append('|')
                 .append(clean(c.getName())).append('|')
+                .append(clean(c.getEmail())).append('|')
                 .append(c.getAge() == null ? "" : c.getAge()).append('|')
-                .append(clean(c.getCountry())).append('\n'));
+                .append(clean(c.getCountry())).append('|')
+                .append(clean(c.getPhone())).append('\n'));
         return sb.append("</customers>").toString();
     }
 

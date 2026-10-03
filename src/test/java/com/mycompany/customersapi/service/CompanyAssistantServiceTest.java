@@ -34,7 +34,7 @@ class CompanyAssistantServiceTest {
     }
 
     @Test
-    void sendsCustomersAsContextWithoutContactData() {
+    void sendsCustomersAsContext() {
         when(repository.findByCompanyIdOrderByIdAsc(1L))
                 .thenReturn(List.of(customer(1, "Ann", 30, "France")));
         when(bedrock.ask(any(), eq("question"))).thenReturn("answer");
@@ -43,9 +43,7 @@ class CompanyAssistantServiceTest {
 
         var system = org.mockito.ArgumentCaptor.forClass(String.class);
         verify(bedrock).ask(system.capture(), eq("question"));
-        assertTrue(system.getValue().contains("1|Ann|30|France"));
-        assertFalse(system.getValue().contains("@x.com"));
-        assertFalse(system.getValue().contains("555"));
+        assertTrue(system.getValue().contains("1|Ann|Ann@x.com|30|France|+1 555"));
     }
 
     @Test
