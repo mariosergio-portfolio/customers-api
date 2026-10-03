@@ -101,7 +101,7 @@ Open points: the schema needs a `birthDate` and an email address per customer, a
 | `GET` | `/api/companies/{companyId}/customers` | Search customers by company, with optional `name`, `country`, `orderBy` (`id`\|`name`) query params. |
 | `GET` | `/api/customers/{customerPk}/pronounce` | Synthesizes the customer's name via AWS Polly. Optional `language` query param (BCP‑47, e.g. `en-US`, `pt-BR`), defaults to `en-US`. Returns `audio/mpeg`. |
 
-Full interactive documentation is available at `/swagger-ui.html` once the app is running.
+Full interactive documentation is available at `/customers/swagger-ui.html` (the app runs under the `/customers` context path) once the app is running.
 
 ## Configuration
 
@@ -125,10 +125,10 @@ The server listens on port `8082` by default.
 Prerequisites: JDK 25, Maven, and a PostgreSQL instance with a `CUSTOMER` table matching [Customer.java](src/main/java/com/mycompany/customersapi/domain/Customer.java).
 
 ```bash
-./mvnw spring-boot:run
+./mvn spring-boot:run
 ```
 
-The API will be available at `http://localhost:8082`, with Swagger UI at `http://localhost:8082/swagger-ui.html`.
+The API will be available at `http://localhost:8082/customers`, with Swagger UI at `http://localhost:8082/customers/swagger-ui.html`.
 
 To use the `/pronounce` endpoint, make sure valid AWS credentials with Polly access are available (see Configuration above);
 
