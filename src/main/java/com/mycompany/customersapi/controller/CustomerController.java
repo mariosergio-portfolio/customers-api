@@ -1,6 +1,7 @@
 package com.mycompany.customersapi.controller;
 
 import com.mycompany.customersapi.config.GlobalExceptionHandler;
+import com.mycompany.customersapi.domain.PronounceLanguage;
 import com.mycompany.customersapi.dto.CustomerPageResponse;
 import com.mycompany.customersapi.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,8 +81,8 @@ public class CustomerController {
             @Parameter(description = "Customer PK", required = true)
             @PathVariable("customerPk") @NotNull UUID customerPk,
 
-            @Parameter(description = "BCP-47 language code for Polly TTS (e.g. en-US, pt-BR). Defaults to en-US.")
-            @RequestParam(value = "language", required = false, defaultValue = "en-US") String language) {
+            @Parameter(description = "BCP-47 language code for Polly TTS. Defaults to en-US.")
+            @RequestParam(value = "language", required = false, defaultValue = "en-US") PronounceLanguage language) {
 
         byte[] mp3 = customerService.pronounce(customerPk, language);
 

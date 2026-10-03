@@ -1,6 +1,7 @@
 package com.mycompany.customersapi.service;
 
 import com.mycompany.customersapi.domain.Customer;
+import com.mycompany.customersapi.domain.PronounceLanguage;
 import com.mycompany.customersapi.dto.CustomerPageResponse;
 import com.mycompany.customersapi.dto.CustomerResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
@@ -67,9 +68,9 @@ public class CustomerService {
     /**
      * Looks up the customer by PK and delegates synthesis to PronounceService.
      */
-    public byte[] pronounce(UUID customerPk, String languageCode) {
+    public byte[] pronounce(UUID customerPk, PronounceLanguage language) {
         Customer customer = getCustomer(customerPk);
-        return pronounceService.synthesize(customer.getName(), customer.getCountry(), languageCode);
+        return pronounceService.synthesize(customer.getName(), customer.getCountry(), language);
     }
 
     private boolean isBlank(String value) {

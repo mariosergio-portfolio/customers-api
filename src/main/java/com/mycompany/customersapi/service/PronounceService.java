@@ -1,5 +1,6 @@
 package com.mycompany.customersapi.service;
 
+import com.mycompany.customersapi.domain.PronounceLanguage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -72,19 +73,19 @@ public class PronounceService {
      *
      * @param name         customer name
      * @param country      customer country (may be null)
-     * @param languageCode BCP-47 language code accepted by Polly (e.g. "en-US", "pt-BR")
+     * @param language     language to synthesize in
      * @return MP3 audio bytes (audio/mpeg)
      * @throws PronounceException if Polly returns an error or the stream cannot be read
      */
-    public byte[] synthesize(String name, String country, String languageCode) {
+    public byte[] synthesize(String name, String country, PronounceLanguage language) {
         String safeName = (name == null || name.isBlank()) ? "unknown" : name.trim();
 
-        String from = (languageCode.startsWith("pt") || languageCode.startsWith("es")) ? "de" : "from";
+        String lang = language.code();
+        String from = (lang.startsWith("pt") || lang.startsWith("es")) ? "de" : "from";
 
         String text     = (country != null && !country.isBlank())
                 ? safeName + " " + from + " " + country.trim()
                 : safeName;
-        String lang     = (languageCode == null || languageCode.isBlank()) ? "en-US" : languageCode.trim();
         String voice    = resolveVoice(lang);
         log.debug("Calling AWS Polly: voice={}, language={}, text='{}'", voice, lang, text);
 
