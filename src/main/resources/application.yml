@@ -78,4 +78,6 @@ aws:
     # Must be a model (or cross-region inference profile) enabled in your account/region.
     model-id: ${AWS_BEDROCK_MODEL_ID:us.anthropic.claude-sonnet-4-5-20250929-v1:0}
     max-tokens: ${AWS_BEDROCK_MAX_TOKENS:1024}
+    # Max customers of a company sent to the model as context by /companies/{companyId}/ask.
+    company-context-max-customers: ${AWS_BEDROCK_COMPANY_CONTEXT_MAX_CUSTOMERS:200}
     # Credentials: default AWS chain (aws login / env vars / profile / IAM role).
