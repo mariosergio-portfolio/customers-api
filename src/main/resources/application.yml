@@ -82,4 +82,10 @@ aws:
     # /companies/{companyId}/ask: the model generates SQL, the service runs it read-only.
     company-query-max-rows: ${AWS_BEDROCK_COMPANY_QUERY_MAX_ROWS:100}
     company-query-timeout-seconds: ${AWS_BEDROCK_COMPANY_QUERY_TIMEOUT_SECONDS:5}
+    # /companies/{companyId}/agentic-ask: a tool-use agent (needs a model that supports tool use in Converse, e.g. Claude).
+    # It runs queries with the same row cap and timeout as above and sees the full rows they return.
+    assistant-model-id: ${AWS_BEDROCK_ASSISTANT_MODEL_ID:us.anthropic.claude-sonnet-4-5-20250929-v1:0}
+    agent-max-steps: ${AWS_BEDROCK_AGENT_MAX_STEPS:6}              # model calls per question; the last one writes the answer
+    agent-max-tokens: ${AWS_BEDROCK_AGENT_MAX_TOKENS:2048}
+    agent-max-result-chars: ${AWS_BEDROCK_AGENT_MAX_RESULT_CHARS:20000}   # size of one tool result sent back to the model
     # Credentials: default AWS chain (aws login / env vars / profile / IAM role).

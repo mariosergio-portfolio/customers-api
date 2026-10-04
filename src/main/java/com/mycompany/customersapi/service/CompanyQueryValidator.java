@@ -28,7 +28,7 @@ public class CompanyQueryValidator {
     static final String TABLE = "customer";
 
     /** Functions the model may call; anything else (pg_sleep, set_config, ...) is rejected. */
-    private static final Set<String> ALLOWED_FUNCTIONS = Set.of(
+    static final Set<String> ALLOWED_FUNCTIONS = Set.of(
             "count", "sum", "avg", "min", "max", "round", "abs", "ceil", "floor",
             "lower", "upper", "length", "trim", "substring", "concat", "coalesce", "nullif",
             "date_trunc", "now", "row_number", "rank", "dense_rank");

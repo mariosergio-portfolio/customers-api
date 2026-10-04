@@ -101,6 +101,9 @@ Open points: the schema needs a `birthDate` and an email address per customer, a
 | `GET` | `/api/companies/{companyId}/customers` | Search customers by company, with optional `name`, `country`, `orderBy` (`id`\|`name`) query params. |
 | `GET` | `/api/customers/{customerPk}/pronounce` | Synthesizes the customer's name via AWS Polly. Optional `language` query param (BCP‑47, e.g. `en-US`, `pt-BR`), defaults to `en-US`. Returns `audio/mpeg`. |
 | `POST` | `/api/customers/{customerPk}/birthday-greetings` | Writes a birthday greeting with Amazon Bedrock. The model receives the customer's name and country and chooses the language (main language of the country) and the grammatical gender; the service sets a formality band from the age and does not send the exact age, email or phone. Returns `{ message, tone }`. |
+| `POST` | `/api/companies/{companyId}/ask` | Question about a company's customers in plain language. One Bedrock call: the model sees only the table structure and writes a SQL query plus a short message; the API validates the query and runs it read-only for the company. No customer data goes to the model. Returns `{ message, sql, rowCount, rows }`. |
+| `POST` | `/api/companies/{companyId}/agentic-ask` | Same question, answered by a tool-use agent (needs a tool-capable model, `aws.bedrock.assistant-model-id`, e.g. Claude). The model runs read-only SQL as often as it needs, reads the full rows each query returns (**customer data, including names, emails and phones, is sent to the model**), fixes rejected queries and writes the answer. Returns `{ answer, sql, rowCount, rows, steps }`, where `steps` lists every query tried. |
+| `POST` | `/api/bedrock/ask` | Sends a prompt (and optional `systemPrompt`) to the Bedrock model. Returns `{ answer }`. |
 
 Full interactive documentation is available at `/customers/swagger-ui.html` (the app runs under the `/customers` context path) once the app is running.
 
