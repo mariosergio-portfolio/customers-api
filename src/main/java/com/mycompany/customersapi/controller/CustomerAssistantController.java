@@ -23,7 +23,7 @@ import java.util.UUID;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Validated
-public class BirthdayGreetingController {
+public class CustomerAssistantController {
 
     private final BirthdayGreetingService birthdayGreetingService;
 
