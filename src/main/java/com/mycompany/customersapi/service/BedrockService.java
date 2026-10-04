@@ -13,6 +13,9 @@ import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.Message;
 import software.amazon.awssdk.services.bedrockruntime.model.SystemContentBlock;
+import software.amazon.awssdk.services.bedrockruntime.model.ToolConfiguration;
+
+import java.util.List;
 
 /**
  * Sends prompts to a foundation model on AWS Bedrock through the Converse API.
@@ -75,6 +78,34 @@ public class BedrockService {
                     .map(ContentBlock::text)
                     .filter(t -> t != null)
                     .reduce("", String::concat);
+        } catch (SdkException e) {
+            log.error("AWS Bedrock error: {}", e.getMessage());
+            throw new BedrockException("Bedrock invocation failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * One Converse call with an explicit model and conversation, returning the whole response so the
+     * caller can read tool requests and the stop reason (used by the agentic assistant).
+     *
+     * @param toolConfig tools the model may call; may be null
+     * @throws BedrockException if Bedrock returns an error
+     */
+    public ConverseResponse converse(String modelId, String systemPrompt, List<Message> messages,
+                                     ToolConfiguration toolConfig, int maxTokens) {
+        log.debug("Calling AWS Bedrock Converse: model={}, messages={}", modelId, messages.size());
+        try {
+            return client.converse(r -> {
+                r.modelId(modelId)
+                        .messages(messages)
+                        .inferenceConfig(c -> c.maxTokens(maxTokens));
+                if (systemPrompt != null && !systemPrompt.isBlank()) {
+                    r.system(SystemContentBlock.fromText(systemPrompt));
+                }
+                if (toolConfig != null) {
+                    r.toolConfig(toolConfig);
+                }
+            });
         } catch (SdkException e) {
             log.error("AWS Bedrock error: {}", e.getMessage());
             throw new BedrockException("Bedrock invocation failed: " + e.getMessage(), e);
