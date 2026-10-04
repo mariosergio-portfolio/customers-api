@@ -4,7 +4,7 @@ import com.mycompany.customersapi.config.GlobalExceptionHandler;
 import com.mycompany.customersapi.domain.PronounceLanguage;
 import com.mycompany.customersapi.dto.BirthdayGreetingResponse;
 import com.mycompany.customersapi.service.BirthdayGreetingService;
-import com.mycompany.customersapi.service.CustomerService;
+import com.mycompany.customersapi.service.PronounceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,7 +30,7 @@ import java.util.UUID;
 public class CustomerAssistantController {
 
     private final BirthdayGreetingService birthdayGreetingService;
-    private final CustomerService customerService;
+    private final PronounceService pronounceService;
 
     @Operation(
             summary = "Write a birthday greeting for a customer",
@@ -76,7 +76,7 @@ public class CustomerAssistantController {
             @Parameter(description = "BCP-47 language code for Polly TTS. Defaults to en-US.")
             @RequestParam(value = "language", required = false, defaultValue = "en-US") PronounceLanguage language) {
 
-        byte[] mp3 = customerService.pronounce(customerPk, language);
+        byte[] mp3 = pronounceService.pronounce(customerPk, language);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,

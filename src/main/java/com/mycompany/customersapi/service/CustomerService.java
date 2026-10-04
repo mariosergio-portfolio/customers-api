@@ -1,7 +1,6 @@
 package com.mycompany.customersapi.service;
 
 import com.mycompany.customersapi.domain.Customer;
-import com.mycompany.customersapi.domain.PronounceLanguage;
 import com.mycompany.customersapi.dto.CustomerPageResponse;
 import com.mycompany.customersapi.dto.CustomerResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
@@ -20,7 +19,6 @@ import java.util.UUID;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-    private final PronounceService    pronounceService;
 
     public CustomerPageResponse search(Long companyId, String name, String country, String orderBy) {
         String normalizedName    = isBlank(name)    ? null : name.trim();
@@ -63,14 +61,6 @@ public class CustomerService {
                             HttpStatus.NOT_FOUND,
                             "Customer not found: " + customerPk);
                 });
-    }
-
-    /**
-     * Looks up the customer by PK and delegates synthesis to PronounceService.
-     */
-    public byte[] pronounce(UUID customerPk, PronounceLanguage language) {
-        Customer customer = getCustomer(customerPk);
-        return pronounceService.synthesize(customer.getName(), customer.getCountry(), language);
     }
 
     private boolean isBlank(String value) {

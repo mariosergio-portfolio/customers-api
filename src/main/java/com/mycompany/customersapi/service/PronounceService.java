@@ -1,6 +1,8 @@
 package com.mycompany.customersapi.service;
 
+import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.domain.PronounceLanguage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -29,8 +32,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * The response is returned as raw MP3 bytes (audio/mpeg).
  */
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class PronounceService {
+
+    private final CustomerService customerService;
 
     @Value("${aws.polly.region:us-east-1}")
     private String region;
@@ -66,6 +72,16 @@ public class PronounceService {
 
         pollyClient = builder.build();
         log.info("AWS Polly client initialised — region={}, voice={}", region, voiceId);
+    }
+
+    /**
+     * Looks up the customer by PK (404 if not found) and synthesizes the customer's name and country.
+     *
+     * @return MP3 audio bytes (audio/mpeg)
+     */
+    public byte[] pronounce(UUID customerPk, PronounceLanguage language) {
+        Customer customer = customerService.getCustomer(customerPk);
+        return synthesize(customer.getName(), customer.getCountry(), language);
     }
 
     /**
