@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@Tag(name = "Bedrock", description = "Send prompts to a foundation model on AWS Bedrock")
+@Tag(name = "Customer AI Assistant", description = "Send prompts to a foundation model on AWS Bedrock")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -55,7 +55,6 @@ public class CustomerAssistantController {
         return ResponseEntity.ok(birthdayGreetingService.greet(customerPk));
     }
 
-    @Tag(name = "Customers")
     @Operation(
             summary = "Pronounce customer name",
             description = "Calls AWS Polly Neural TTS to synthesize the customer's name and country, returning MP3 audio."

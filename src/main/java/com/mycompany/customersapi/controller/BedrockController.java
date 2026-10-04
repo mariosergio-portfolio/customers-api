@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Bedrock", description = "Send prompts to a foundation model on AWS Bedrock")
+@Tag(name = "General AI Assistant", description = "Send prompts to a foundation model on AWS Bedrock")
 @RestController
 @RequestMapping("/api/bedrock")
 @RequiredArgsConstructor

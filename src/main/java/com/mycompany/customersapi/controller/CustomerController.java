@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Customers", description = "Endpoints for querying customers with optional partial-text filters")
+@Tag(name = "Customers Data", description = "Endpoints for querying customers with optional partial-text filters")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor

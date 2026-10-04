@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Bedrock", description = "Send prompts to a foundation model on AWS Bedrock")
+@Tag(name = "Company AI Assistant", description = "Send prompts to a foundation model on AWS Bedrock")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
