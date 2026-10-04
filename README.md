@@ -100,6 +100,7 @@ Open points: the schema needs a `birthDate` and an email address per customer, a
 |---|---|---|
 | `GET` | `/api/companies/{companyId}/customers` | Search customers by company, with optional `name`, `country`, `orderBy` (`id`\|`name`) query params. |
 | `GET` | `/api/customers/{customerPk}/pronounce` | Synthesizes the customer's name via AWS Polly. Optional `language` query param (BCP‑47, e.g. `en-US`, `pt-BR`), defaults to `en-US`. Returns `audio/mpeg`. |
+| `POST` | `/api/customers/{customerPk}/birthday-greetings` | Writes a birthday greeting with Amazon Bedrock, in the main language of the customer's country (fixed lookup, English if unknown) and with a formality that follows the age. The model never receives the customer's name, email, phone, country or exact age: it writes a `{{NAME}}` placeholder that the service replaces. Returns `{ message, language, tone }`. |
 
 Full interactive documentation is available at `/customers/swagger-ui.html` (the app runs under the `/customers` context path) once the app is running.
 
