@@ -1,7 +1,6 @@
 package com.mycompany.customersapi.controller;
 
 import com.mycompany.customersapi.config.GlobalExceptionHandler;
-import com.mycompany.customersapi.domain.PronounceLanguage;
 import com.mycompany.customersapi.dto.CustomerPageResponse;
 import com.mycompany.customersapi.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,13 +13,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @Tag(name = "Customers", description = "Endpoints for querying customers with optional partial-text filters")
 @RestController
@@ -62,36 +57,6 @@ public class CustomerController {
             @RequestParam(value = "orderBy", required = false, defaultValue = "id") String orderBy) {
 
         return ResponseEntity.ok(customerService.search(companyId, name, country, orderBy));
-    }
-
-    @Operation(
-            summary = "Pronounce customer name",
-            description = "Calls AWS Polly Neural TTS to synthesize the customer's name and country, returning MP3 audio."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "MP3 audio bytes",
-                    content = @Content(mediaType = "audio/mpeg")),
-            @ApiResponse(responseCode = "404", description = "Customer not found",
-                    content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Unexpected server error",
-                    content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class)))
-    })
-    @GetMapping("/customers/{customerPk}/pronounce")
-    public ResponseEntity<byte[]> pronounce(
-            @Parameter(description = "Customer PK", required = true)
-            @PathVariable("customerPk") @NotNull UUID customerPk,
-
-            @Parameter(description = "BCP-47 language code for Polly TTS. Defaults to en-US.")
-            @RequestParam(value = "language", required = false, defaultValue = "en-US") PronounceLanguage language) {
-
-        byte[] mp3 = customerService.pronounce(customerPk, language);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + customerPk + "-pronounce.mp3\"")
-                .contentType(MediaType.parseMediaType("audio/mpeg"))
-                .contentLength(mp3.length)
-                .body(mp3);
     }
 
   /*  @GetMapping("/customers/{customerPk}/blip")
