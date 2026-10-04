@@ -3,6 +3,7 @@ package com.mycompany.customersapi.service;
 import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.domain.GreetingTone;
 import com.mycompany.customersapi.dto.BirthdayGreetingResponse;
+import com.mycompany.customersapi.service.bedrock.BedrockService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

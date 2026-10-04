@@ -2,6 +2,9 @@ package com.mycompany.customersapi.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.customersapi.repository.CustomerRepository;
+import com.mycompany.customersapi.service.bedrock.BedrockService;
+import com.mycompany.customersapi.service.query.CompanyQueryValidator;
+import com.mycompany.customersapi.service.query.GeneratedQueryException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.PlatformTransactionManager;

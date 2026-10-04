@@ -1,7 +1,8 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.speech;
 
 import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.domain.PronounceLanguage;
+import com.mycompany.customersapi.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -4,7 +4,7 @@ import com.mycompany.customersapi.config.GlobalExceptionHandler;
 import com.mycompany.customersapi.domain.PronounceLanguage;
 import com.mycompany.customersapi.dto.BirthdayGreetingResponse;
 import com.mycompany.customersapi.service.BirthdayGreetingService;
-import com.mycompany.customersapi.service.PronounceService;
+import com.mycompany.customersapi.service.speech.PronounceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

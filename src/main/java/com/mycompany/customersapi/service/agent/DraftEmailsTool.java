@@ -1,10 +1,11 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.agent;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.customersapi.domain.CountryLanguage;
 import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.repository.CustomerRepository;
+import com.mycompany.customersapi.service.email.PendingDraft;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

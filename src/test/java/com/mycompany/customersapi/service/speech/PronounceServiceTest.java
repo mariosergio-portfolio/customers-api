@@ -1,6 +1,7 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.speech;
 
 import com.mycompany.customersapi.domain.PronounceLanguage;
+import com.mycompany.customersapi.service.CustomerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;

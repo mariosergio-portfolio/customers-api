@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.query;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Function;
@@ -17,7 +17,7 @@ import java.util.Set;
  *
  * The model's SQL is never trusted: this validator is one of three layers, together with the
  * company-scoped {@code customer} CTE and the read-only transaction in
- * {@link CompanyAssistantService}. Rejecting schema-qualified and quoted table names keeps
+ * {@link com.mycompany.customersapi.service.CompanyAssistantService}. Rejecting schema-qualified and quoted table names keeps
  * every reference bound to that CTE (the finder reports names as written, quotes and schema included), and rejecting WITH keeps the CTE from being redefined.
  *
  * The statement that is returned has been re-rendered by the parser, so comments are gone.
@@ -28,7 +28,7 @@ public class CompanyQueryValidator {
     static final String TABLE = "customer";
 
     /** Functions the model may call; anything else (pg_sleep, set_config, ...) is rejected. */
-    static final Set<String> ALLOWED_FUNCTIONS = Set.of(
+    public static final Set<String> ALLOWED_FUNCTIONS = Set.of(
             "count", "sum", "avg", "min", "max", "round", "abs", "ceil", "floor",
             "lower", "upper", "length", "trim", "substring", "concat", "coalesce", "nullif",
             "date_trunc", "now", "row_number", "rank", "dense_rank");

@@ -1,4 +1,6 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.agent;
+
+import com.mycompany.customersapi.service.email.PendingDraft;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;

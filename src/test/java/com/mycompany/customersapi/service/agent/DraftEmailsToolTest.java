@@ -1,8 +1,9 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.repository.CustomerRepository;
+import com.mycompany.customersapi.service.email.PendingDraft;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.document.Document;

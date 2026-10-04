@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.agent;
 
 /**
  * Outcome of one tool call.

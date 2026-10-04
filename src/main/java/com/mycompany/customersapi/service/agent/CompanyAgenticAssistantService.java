@@ -1,10 +1,14 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.agent;
 
 import com.mycompany.customersapi.domain.CountryLanguage;
 import com.mycompany.customersapi.dto.AgentStep;
 import com.mycompany.customersapi.dto.CompanyAgentResponse;
 import com.mycompany.customersapi.dto.EmailBatchResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
+import com.mycompany.customersapi.service.bedrock.BedrockService;
+import com.mycompany.customersapi.service.email.EmailBatchService;
+import com.mycompany.customersapi.service.query.CompanyQueryValidator;
+import com.mycompany.customersapi.service.query.GeneratedQueryException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -31,7 +35,7 @@ import java.util.stream.Collectors;
 /**
  * Answers questions about a company's customers, and drafts emails to them, with a tool-use agent.
  *
- * Unlike {@link CompanyAssistantService} (one model call that writes one query), here the model drives:
+ * Unlike {@link com.mycompany.customersapi.service.CompanyAssistantService} (one model call that writes one query), here the model drives:
  * it calls {@code run_query} as often as it needs to read the real rows, fixes rejected or failed queries,
  * and calls {@code draft_emails} to write emails in each customer's language. The service only executes tool
  * calls and enforces limits.

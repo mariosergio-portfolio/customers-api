@@ -3,6 +3,7 @@ package com.mycompany.customersapi.service;
 import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.domain.GreetingTone;
 import com.mycompany.customersapi.dto.BirthdayGreetingResponse;
+import com.mycompany.customersapi.service.bedrock.BedrockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

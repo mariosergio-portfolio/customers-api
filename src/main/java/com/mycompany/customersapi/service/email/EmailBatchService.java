@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.email;
 
 import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.domain.EmailBatch;

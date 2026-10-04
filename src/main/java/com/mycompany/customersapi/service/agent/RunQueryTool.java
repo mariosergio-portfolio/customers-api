@@ -1,4 +1,8 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.agent;
+
+import com.mycompany.customersapi.service.query.CompanyQueryExecutor;
+import com.mycompany.customersapi.service.query.CompanyQueryValidator;
+import com.mycompany.customersapi.service.query.GeneratedQueryException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

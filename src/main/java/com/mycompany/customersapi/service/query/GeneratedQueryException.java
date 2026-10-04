@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.query;
 
 /** The model produced SQL that is unusable or was rejected; mapped to HTTP 422. */
 public class GeneratedQueryException extends RuntimeException {

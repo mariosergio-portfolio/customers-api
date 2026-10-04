@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.email;
 
 /** Port for delivering one email; the production adapter is {@link SesEmailSender}. */
 public interface EmailSender {

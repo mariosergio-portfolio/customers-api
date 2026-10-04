@@ -2,7 +2,7 @@ package com.mycompany.customersapi.controller;
 
 import com.mycompany.customersapi.config.GlobalExceptionHandler;
 import com.mycompany.customersapi.dto.EmailBatchResponse;
-import com.mycompany.customersapi.service.EmailBatchService;
+import com.mycompany.customersapi.service.email.EmailBatchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

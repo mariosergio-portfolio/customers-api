@@ -3,7 +3,7 @@ package com.mycompany.customersapi.controller;
 import com.mycompany.customersapi.config.GlobalExceptionHandler;
 import com.mycompany.customersapi.dto.AskRequest;
 import com.mycompany.customersapi.dto.AskResponse;
-import com.mycompany.customersapi.service.BedrockService;
+import com.mycompany.customersapi.service.bedrock.BedrockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.bedrock;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;

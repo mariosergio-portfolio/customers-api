@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.query;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -20,7 +20,7 @@ import java.util.Map;
 @Component
 public class CompanyQueryExecutor {
 
-    /** Columns the model may read. Keep in sync with {@link CompanyAgenticAssistantService#SCHEMA}. */
+    /** Columns the model may read. Keep in sync with {@link com.mycompany.customersapi.service.agent.CompanyAgenticAssistantService#SCHEMA}. */
     static final String VISIBLE_COLUMNS = "id, name, email, age, country, phone, created_at";
 
     private final String             schema;

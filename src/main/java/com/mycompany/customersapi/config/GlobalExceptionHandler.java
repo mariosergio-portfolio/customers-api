@@ -1,7 +1,7 @@
 package com.mycompany.customersapi.config;
 
-import com.mycompany.customersapi.service.BedrockService;
-import com.mycompany.customersapi.service.GeneratedQueryException;
+import com.mycompany.customersapi.service.bedrock.BedrockService;
+import com.mycompany.customersapi.service.query.GeneratedQueryException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
