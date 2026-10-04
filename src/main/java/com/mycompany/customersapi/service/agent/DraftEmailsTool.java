@@ -90,7 +90,8 @@ class DraftEmailsTool implements AgentTool {
                 continue;
             }
             Customer customer = customers.get(customerId);
-            run.putDraft(customerId, new PendingDraft(customer, CountryLanguage.languageOf(customer.getCountry()),
+            run.putDraft(new PendingDraft(customer.getCustomerPk(), customer.getId(), customer.getName(), customer.getEmail(),
+                    CountryLanguage.languageOf(customer.getCountry()),
                     cleanLine(textOf(item, "subject")), textOf(item, "body").strip()));
             accepted++;
         }

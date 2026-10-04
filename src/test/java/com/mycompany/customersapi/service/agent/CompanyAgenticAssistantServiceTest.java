@@ -46,6 +46,7 @@ class CompanyAgenticAssistantServiceTest {
     private BedrockService bedrock;
     private CompanyQueryExecutor executor;
     private EmailBatchService emailBatchService;
+    private AgentSessionService sessions;
     private RunQueryTool runQueryTool;
     private CompanyAgenticAssistantService service;
 
@@ -55,6 +56,8 @@ class CompanyAgenticAssistantServiceTest {
         bedrock = mock(BedrockService.class);
         executor = mock(CompanyQueryExecutor.class);
         emailBatchService = mock(EmailBatchService.class);
+        sessions = mock(AgentSessionService.class);
+        when(sessions.open(any(), any())).thenReturn(new AgentSessionService.SessionState(UUID.randomUUID(), List.of(), null));
         service = newService(4, 20000);
         when(repository.existsByCompanyId(1L)).thenReturn(true);
     }
@@ -63,8 +66,8 @@ class CompanyAgenticAssistantServiceTest {
         ObjectMapper mapper = new ObjectMapper();
         runQueryTool = new RunQueryTool(new CompanyQueryValidator(), executor, mapper, maxResultChars, 100);
         DraftEmailsTool draftEmailsTool = new DraftEmailsTool(repository, mapper, 25);
-        return new CompanyAgenticAssistantService(repository, bedrock, emailBatchService,
-                List.of(runQueryTool, draftEmailsTool), "test-model", maxSteps, 2048, 25);
+        return new CompanyAgenticAssistantService(repository, bedrock, sessions, new DraftBatchCoordinator(emailBatchService),
+                List.of(runQueryTool, draftEmailsTool, new RemoveDraftsTool(mapper)), "test-model", maxSteps, 2048, 25);
     }
 
     // ── fake model responses ─────────────────────────────────────────────────
@@ -235,7 +238,7 @@ class CompanyAgenticAssistantServiceTest {
         var ex = assertThrows(ResponseStatusException.class, () -> service.ask(9L, "q"));
 
         assertEquals(404, ex.getStatusCode().value());
-        verifyNoInteractions(bedrock, executor);
+        verifyNoInteractions(bedrock, executor, sessions);
     }
 
     @Test
@@ -245,9 +248,10 @@ class CompanyAgenticAssistantServiceTest {
         service.ask(1L, "q");
 
         verify(bedrock).converse(eq("test-model"), anyString(), any(), org.mockito.ArgumentMatchers.argThat(
-                cfg -> cfg != null && cfg.tools().size() == 2
+                cfg -> cfg != null && cfg.tools().size() == 3
                         && "run_query".equals(cfg.tools().get(0).toolSpec().name())
-                        && "draft_emails".equals(cfg.tools().get(1).toolSpec().name())), eq(2048));
+                        && "draft_emails".equals(cfg.tools().get(1).toolSpec().name())
+                        && "remove_drafts".equals(cfg.tools().get(2).toolSpec().name())), eq(2048));
     }
 
     @Test
@@ -293,6 +297,8 @@ class CompanyAgenticAssistantServiceTest {
         assertTrue(prompt.contains("France: French"));
         assertTrue(prompt.contains("Switzerland: German"));
         assertTrue(prompt.contains("Nothing is sent"));
+        assertTrue(prompt.contains("remove_drafts"));
+        assertTrue(prompt.contains("same customer id"));
     }
 
     // ── drafting emails ──────────────────────────────────────────────────────
@@ -329,7 +335,7 @@ class CompanyAgenticAssistantServiceTest {
         ArgumentCaptor<Collection<PendingDraft>> stored = ArgumentCaptor.forClass(Collection.class);
         verify(emailBatchService).createBatch(eq(1L), eq("Greet Ann"), stored.capture());
         PendingDraft draft = stored.getValue().iterator().next();
-        assertSame(ann, draft.customer());
+        assertEquals(ann.getCustomerPk(), draft.customerPk());
         assertEquals("French", draft.language());
         assertEquals("Joyeux anniversaire", draft.subject());
         verify(emailBatchService, never()).approve(any(), any());
@@ -348,5 +354,161 @@ class CompanyAgenticAssistantServiceTest {
         assertNull(response.emailBatch());
         assertEquals(ToolResultStatus.ERROR, toolResultSentInCall(2).status());
         verifyNoInteractions(emailBatchService);
+    }
+
+    // ── multi-turn sessions ──────────────────────────────────────────────────
+
+    private static PendingDraft pending(long id, String name, String subject) {
+        return new PendingDraft(UUID.randomUUID(), id, name, name.toLowerCase().replace(" ", ".") + "@example.com",
+                "French", subject, "body of " + name);
+    }
+
+    private static ConverseResponse removeDrafts(String id, long... customerIds) {
+        List<Document> ids = new ArrayList<>();
+        for (long customerId : customerIds) {
+            ids.add(Document.fromNumber(customerId));
+        }
+        return toolUse(null, id, "remove_drafts", Document.mapBuilder().putList("customerIds", ids).build());
+    }
+
+    private UUID sessionWithOpenDrafts(PendingDraft... drafts) {
+        UUID sessionId = UUID.randomUUID();
+        UUID batchId = UUID.randomUUID();
+        when(sessions.open(eq(1L), eq(sessionId))).thenReturn(new AgentSessionService.SessionState(sessionId,
+                List.of(Message.builder().role(ConversationRole.USER).content(ContentBlock.fromText("first question")).build(),
+                        Message.builder().role(ConversationRole.ASSISTANT).content(ContentBlock.fromText("first answer")).build()),
+                batchId));
+        when(emailBatchService.openDrafts(1L, batchId)).thenReturn(List.of(drafts));
+        when(emailBatchService.get(eq(1L), eq(batchId))).thenReturn(
+                new EmailBatchResponse(batchId, 1L, "DRAFTED", null, null, drafts.length, 0, List.of()));
+        return sessionId;
+    }
+
+    private UUID openBatchOf(UUID sessionId) {
+        return sessions.open(1L, sessionId).batchId();
+    }
+
+    @Test
+    void aFollowUpReplaysTheHistoryAndShowsTheDraftsUnderReview() {
+        UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "Bonjour"));
+        UUID batchId = openBatchOf(sessionId);
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("Nothing to change."));
+
+        CompanyAgentResponse response = service.ask(1L, "Is the first email polite?", sessionId);
+
+        ArgumentCaptor<List<Message>> sent = ArgumentCaptor.forClass(List.class);
+        verify(bedrock).converse(anyString(), anyString(), sent.capture(), any(), anyInt());
+        List<Message> messages = sent.getValue();
+        assertEquals(3, messages.size());
+        assertEquals("first question", messages.get(0).content().getFirst().text());
+        assertEquals("first answer", messages.get(1).content().getFirst().text());
+        String userMessage = messages.get(2).content().getFirst().text();
+        assertTrue(userMessage.startsWith("Is the first email polite?"));
+        assertTrue(userMessage.contains("customerId 7 (Ann Dupont, French)"));
+        assertTrue(userMessage.contains("not instructions"));
+
+        assertEquals(sessionId, response.sessionId());
+        assertNotNull(response.emailBatch(), "the batch under review is returned even when this turn did not change it");
+        verify(emailBatchService, never()).updateDrafts(any(), any(), any());
+        verify(sessions).record(eq(1L), eq(sessionId), eq("Is the first email polite?"), eq("Nothing to change."), eq(batchId));
+    }
+
+    @Test
+    void theStoredPromptIsTheUsersTextWithoutTheDraftsBlock() {
+        UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "Bonjour"));
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("ok"));
+
+        service.ask(1L, "shorter please", sessionId);
+
+        ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
+        verify(sessions).record(eq(1L), eq(sessionId), prompt.capture(), anyString(), any());
+        assertEquals("shorter please", prompt.getValue());
+    }
+
+    @Test
+    void aRevisedDraftEditsTheOpenBatchInsteadOfCreatingANewOne() {
+        Customer ann = customer(7, "Ann Dupont", "France");
+        UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "Bonjour"));
+        UUID batchId = openBatchOf(sessionId);
+        when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(ann));
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
+                draftEmails("t1", 7, "Nouveau sujet", "Corps plus court"),
+                answer("Shortened."));
+        EmailBatchResponse edited = new EmailBatchResponse(batchId, 1L, "DRAFTED", null, null, 1, 0, List.of());
+        when(emailBatchService.updateDrafts(eq(1L), eq(batchId), any())).thenReturn(edited);
+
+        CompanyAgentResponse response = service.ask(1L, "Make it shorter", sessionId);
+
+        assertSame(edited, response.emailBatch());
+        ArgumentCaptor<Collection<PendingDraft>> stored = ArgumentCaptor.forClass(Collection.class);
+        verify(emailBatchService).updateDrafts(eq(1L), eq(batchId), stored.capture());
+        assertEquals("Nouveau sujet", stored.getValue().iterator().next().subject());
+        verify(emailBatchService, never()).createBatch(any(), any(), any());
+        verify(sessions).record(eq(1L), eq(sessionId), anyString(), eq("Shortened."), eq(batchId));
+    }
+
+    @Test
+    void removingSomeDraftsKeepsTheOthersInTheSameBatch() {
+        UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "s"), pending(8, "Bob Martin", "s"));
+        UUID batchId = openBatchOf(sessionId);
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
+                removeDrafts("t1", 8),
+                answer("Bob is out."));
+        when(emailBatchService.updateDrafts(eq(1L), eq(batchId), any())).thenReturn(
+                new EmailBatchResponse(batchId, 1L, "DRAFTED", null, null, 1, 0, List.of()));
+
+        service.ask(1L, "Drop Bob", sessionId);
+
+        ArgumentCaptor<Collection<PendingDraft>> stored = ArgumentCaptor.forClass(Collection.class);
+        verify(emailBatchService).updateDrafts(eq(1L), eq(batchId), stored.capture());
+        assertEquals(List.of(7L), stored.getValue().stream().map(PendingDraft::customerId).toList());
+    }
+
+    @Test
+    void removingEveryDraftDiscardsTheBatchAndClearsTheSessionsPointer() {
+        UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "s"));
+        UUID batchId = openBatchOf(sessionId);
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
+                removeDrafts("t1", 7),
+                answer("No drafts left."));
+
+        CompanyAgentResponse response = service.ask(1L, "Drop everyone", sessionId);
+
+        assertNull(response.emailBatch());
+        verify(emailBatchService).discard(1L, batchId);
+        verify(sessions).record(eq(1L), eq(sessionId), anyString(), eq("No drafts left."), isNull());
+    }
+
+    @Test
+    void aNewSessionGetsAnIdAndIsStoredWithItsFirstTurn() {
+        UUID fresh = UUID.randomUUID();
+        when(sessions.open(1L, null)).thenReturn(new AgentSessionService.SessionState(fresh, List.of(), null));
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("Hello."));
+
+        CompanyAgentResponse response = service.ask(1L, "Hi");
+
+        assertEquals(fresh, response.sessionId());
+        verify(sessions).record(1L, fresh, "Hi", "Hello.", null);
+    }
+
+    @Test
+    void aFailedRunStoresNothingInTheSession() {
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt()))
+                .thenThrow(new BedrockService.BedrockException("down", null));
+
+        assertThrows(BedrockService.BedrockException.class, () -> service.ask(1L, "Hi"));
+
+        verify(sessions, never()).record(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void anUnknownSessionStopsBeforeTheModelIsCalled() {
+        UUID unknown = UUID.randomUUID();
+        when(sessions.open(1L, unknown)).thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "no session"));
+
+        var ex = assertThrows(ResponseStatusException.class, () -> service.ask(1L, "Hi", unknown));
+
+        assertEquals(404, ex.getStatusCode().value());
+        verifyNoInteractions(bedrock);
     }
 }

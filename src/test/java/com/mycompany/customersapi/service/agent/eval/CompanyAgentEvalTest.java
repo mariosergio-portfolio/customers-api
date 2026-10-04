@@ -7,6 +7,7 @@ import com.mycompany.customersapi.dto.EmailDraftResponse;
 import com.mycompany.customersapi.service.agent.CompanyAgenticAssistantService;
 import com.mycompany.customersapi.service.bedrock.BedrockService;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -58,6 +59,12 @@ class CompanyAgentEvalTest {
     @BeforeEach
     void emptySandbox() {
         eval.deleteCompany(SANDBOX_COMPANY);
+    }
+
+    /** Drafts and sessions the cases create in the seeded company are removed; its customers stay. */
+    @AfterEach
+    void removeAgentData() {
+        eval.deleteAgentData(SEEDED_COMPANY);
     }
 
     @AfterAll
@@ -153,6 +160,44 @@ class CompanyAgentEvalTest {
         }
         assertFalse(eval.judge("Does this message claim that the emails have already been sent, rather than drafted "
                 + "for review?", response.answer()), "the agent only drafts: " + response.answer());
+    }
+
+    // ── refining drafts over several turns ───────────────────────────────────
+
+    @Test
+    void should_drop_a_customer_from_the_drafts_when_asked_in_a_follow_up() {
+        CompanyAgentResponse first = agent.ask(SEEDED_COMPANY, "Write a short thank-you email for the customers with ids 1, 2 and 3.");
+        assertNotNull(first.emailBatch(), "first turn should draft: " + first.answer());
+        assertNotNull(first.sessionId());
+
+        CompanyAgentResponse second = agent.ask(SEEDED_COMPANY, "Drop the email for customer 2.", first.sessionId());
+
+        assertEquals(first.sessionId(), second.sessionId());
+        assertNotNull(second.emailBatch(), "the other drafts should remain: " + second.answer());
+        assertEquals(first.emailBatch().batchId(), second.emailBatch().batchId(), "the same batch is edited, not replaced");
+        assertEquals(Set.of(1L, 3L), second.emailBatch().drafts().stream().map(EmailDraftResponse::customerId).collect(Collectors.toSet()));
+    }
+
+    @Test
+    void should_rewrite_one_draft_in_a_follow_up_and_leave_the_others_alone() {
+        CompanyAgentResponse first = agent.ask(SEEDED_COMPANY, "Write a thank-you email of about 100 words for the customers with ids 1 and 2.");
+        assertNotNull(first.emailBatch(), "first turn should draft: " + first.answer());
+        EmailDraftResponse beforeOne = draftOf(first, 1);
+        EmailDraftResponse beforeTwo = draftOf(first, 2);
+
+        CompanyAgentResponse second = agent.ask(SEEDED_COMPANY,
+                "Rewrite the email to customer 1 so it is only two short sentences. Do not touch the other one.", first.sessionId());
+
+        assertEquals(first.emailBatch().batchId(), second.emailBatch().batchId());
+        EmailDraftResponse afterOne = draftOf(second, 1);
+        assertTrue(afterOne.body().length() < beforeOne.body().length(),
+                "the rewritten draft should be shorter: " + beforeOne.body().length() + " -> " + afterOne.body().length());
+        assertEquals(beforeTwo.body(), draftOf(second, 2).body(), "the other draft must not change");
+    }
+
+    private static EmailDraftResponse draftOf(CompanyAgentResponse response, long customerId) {
+        return response.emailBatch().drafts().stream().filter(d -> d.customerId() == customerId).findFirst()
+                .orElseThrow(() -> new AssertionError("no draft for customer " + customerId));
     }
 
     @Test

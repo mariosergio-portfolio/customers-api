@@ -106,3 +106,6 @@ assistant:
   email:
     max-recipients: ${ASSISTANT_EMAIL_MAX_RECIPIENTS:25}      # per batch
     batch-ttl-hours: ${ASSISTANT_EMAIL_BATCH_TTL_HOURS:24}    # approval is refused after this
+  session:
+    ttl-hours: ${ASSISTANT_SESSION_TTL_HOURS:24}      # a session expires after this long without use
+    max-turns: ${ASSISTANT_SESSION_MAX_TURNS:10}      # prompt/answer pairs replayed to the model

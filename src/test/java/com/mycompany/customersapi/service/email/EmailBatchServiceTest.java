@@ -45,7 +45,8 @@ class EmailBatchServiceTest {
     private static PendingDraft pending(long id, String name) {
         Customer customer = Customer.builder().customerPk(UUID.randomUUID()).id(id).companyId(1L).name(name)
                 .email(name.toLowerCase() + "@example.com").country("France").build();
-        return new PendingDraft(customer, "French", "Sujet " + name, "Corps " + name);
+        return new PendingDraft(customer.getCustomerPk(), customer.getId(), customer.getName(), customer.getEmail(),
+                "French", "Sujet " + name, "Corps " + name);
     }
 
     private EmailBatch storedBatch(EmailBatchStatus status, LocalDateTime expiresAt, EmailDraftStatus... draftStatuses) {
@@ -189,5 +190,103 @@ class EmailBatchServiceTest {
         var ex = assertThrows(ResponseStatusException.class, () -> service.approve(2L, UUID.randomUUID()));
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    // ── reading and editing a batch under review ─────────────────────────────
+
+    private static PendingDraft rewrite(EmailDraft existing, String subject, String body) {
+        return new PendingDraft(existing.getCustomerPk(), existing.getCustomerId(), existing.getRecipientName(),
+                existing.getRecipientEmail(), "French", subject, body);
+    }
+
+    @Test
+    void should_list_the_open_drafts_of_a_batch_waiting_for_approval() {
+        EmailBatch batch = storedBatch(EmailBatchStatus.DRAFTED, inOneHour(), EmailDraftStatus.PENDING, EmailDraftStatus.PENDING);
+
+        List<PendingDraft> open = service.openDrafts(1L, batch.getBatchId());
+
+        assertEquals(2, open.size());
+        assertEquals(batch.getDrafts().getFirst().getSubject(), open.getFirst().subject());
+        assertEquals(batch.getDrafts().getFirst().getCustomerPk(), open.getFirst().customerPk());
+    }
+
+    @Test
+    void should_list_nothing_for_a_sent_expired_or_unknown_batch() {
+        EmailBatch sent = storedBatch(EmailBatchStatus.SENT, inOneHour(), EmailDraftStatus.SENT);
+        EmailBatch expired = storedBatch(EmailBatchStatus.DRAFTED, LocalDateTime.now(clock).minusMinutes(1), EmailDraftStatus.PENDING);
+        when(repository.findByBatchIdAndCompanyId(sent.getBatchId(), 1L)).thenReturn(Optional.of(sent));
+        when(repository.findByBatchIdAndCompanyId(expired.getBatchId(), 1L)).thenReturn(Optional.of(expired));
+
+        assertTrue(service.openDrafts(1L, sent.getBatchId()).isEmpty());
+        assertTrue(service.openDrafts(1L, expired.getBatchId()).isEmpty());
+        assertTrue(service.openDrafts(1L, UUID.randomUUID()).isEmpty());
+    }
+
+    @Test
+    void should_rewrite_add_and_remove_drafts_so_the_batch_holds_exactly_the_given_ones() {
+        EmailBatch batch = storedBatch(EmailBatchStatus.DRAFTED, inOneHour(), EmailDraftStatus.PENDING, EmailDraftStatus.PENDING);
+        EmailDraft kept = batch.getDrafts().get(0);
+        PendingDraft added = pending(99, "Zoe");
+
+        EmailBatchResponse response = service.updateDrafts(1L, batch.getBatchId(),
+                List.of(rewrite(kept, "Nouveau sujet", "Nouveau corps"), added));
+
+        assertEquals(2, response.recipientCount());
+        assertEquals(2, batch.getDrafts().size());
+        assertSame(kept, batch.getDrafts().stream().filter(d -> d.getCustomerPk().equals(kept.getCustomerPk())).findFirst().orElseThrow());
+        assertEquals("Nouveau sujet", kept.getSubject());
+        assertEquals("Nouveau corps", kept.getBody());
+        assertTrue(batch.getDrafts().stream().anyMatch(d -> d.getCustomerId() == 99L && d.getStatus() == EmailDraftStatus.PENDING));
+    }
+
+    @Test
+    void should_refuse_to_edit_a_batch_that_was_sent_or_expired() {
+        EmailBatch sent = storedBatch(EmailBatchStatus.SENT, inOneHour(), EmailDraftStatus.SENT);
+        EmailBatch expired = storedBatch(EmailBatchStatus.DRAFTED, LocalDateTime.now(clock).minusMinutes(1), EmailDraftStatus.PENDING);
+
+        var conflict = assertThrows(ResponseStatusException.class,
+                () -> service.updateDrafts(1L, sent.getBatchId(), List.of(pending(1, "A"))));
+        var gone = assertThrows(ResponseStatusException.class,
+                () -> service.updateDrafts(1L, expired.getBatchId(), List.of(pending(1, "A"))));
+
+        assertEquals(HttpStatus.CONFLICT, conflict.getStatusCode());
+        assertEquals(HttpStatus.GONE, gone.getStatusCode());
+    }
+
+    @Test
+    void should_refuse_an_edit_with_no_drafts_or_more_than_the_cap() {
+        EmailBatch batch = storedBatch(EmailBatchStatus.DRAFTED, inOneHour(), EmailDraftStatus.PENDING);
+
+        assertThrows(IllegalArgumentException.class, () -> service.updateDrafts(1L, batch.getBatchId(), List.of()));
+        assertThrows(IllegalArgumentException.class, () -> service.updateDrafts(1L, batch.getBatchId(),
+                List.of(pending(1, "A"), pending(2, "B"), pending(3, "C"), pending(4, "D"))));
+    }
+
+    @Test
+    void should_discard_a_batch_that_was_not_sent() {
+        EmailBatch batch = storedBatch(EmailBatchStatus.DRAFTED, inOneHour(), EmailDraftStatus.PENDING);
+
+        service.discard(1L, batch.getBatchId());
+
+        verify(repository).delete(batch);
+    }
+
+    @Test
+    void should_ignore_discarding_a_batch_that_does_not_exist() {
+        when(repository.lockByBatchIdAndCompanyId(any(), any())).thenReturn(Optional.empty());
+
+        service.discard(1L, UUID.randomUUID());
+
+        verify(repository, never()).delete(any(EmailBatch.class));
+    }
+
+    @Test
+    void should_refuse_to_discard_a_batch_that_was_already_sent() {
+        EmailBatch batch = storedBatch(EmailBatchStatus.SENT, inOneHour(), EmailDraftStatus.SENT);
+
+        var ex = assertThrows(ResponseStatusException.class, () -> service.discard(1L, batch.getBatchId()));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        verify(repository, never()).delete(any(EmailBatch.class));
     }
 }

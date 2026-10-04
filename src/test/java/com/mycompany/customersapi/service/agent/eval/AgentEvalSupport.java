@@ -70,11 +70,18 @@ final class AgentEvalSupport {
                 """, UUID.randomUUID(), UUID.randomUUID(), companyId, id, name, email, country);
     }
 
-    /** Removes the sandbox company's customers, and any email batches the agent drafted for it. */
+    /** Removes the sandbox company's customers, and everything the agent stored for it. */
     void deleteCompany(long companyId) {
+        deleteAgentData(companyId);
+        jdbc.update("DELETE FROM customer WHERE company_id = ?", companyId);
+    }
+
+    /** Removes the sessions, turns and email batches the agent stored for a company; its customers stay. */
+    void deleteAgentData(long companyId) {
+        jdbc.update("DELETE FROM agent_turn WHERE session_id IN (SELECT session_id FROM agent_session WHERE company_id = ?)", companyId);
+        jdbc.update("DELETE FROM agent_session WHERE company_id = ?", companyId);
         jdbc.update("DELETE FROM email_draft WHERE batch_id IN (SELECT batch_id FROM email_batch WHERE company_id = ?)", companyId);
         jdbc.update("DELETE FROM email_batch WHERE company_id = ?", companyId);
-        jdbc.update("DELETE FROM customer WHERE company_id = ?", companyId);
     }
 
     // ── LLM judge ────────────────────────────────────────────────────────────

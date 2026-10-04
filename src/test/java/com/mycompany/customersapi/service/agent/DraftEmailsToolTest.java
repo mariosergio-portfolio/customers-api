@@ -72,7 +72,10 @@ class DraftEmailsToolTest {
         assertTrue(result.isOk());
         assertEquals(1, result.count());
         PendingDraft stored = run.drafts().iterator().next();
-        assertSame(ann, stored.customer());
+        assertEquals(ann.getCustomerPk(), stored.customerPk());
+        assertEquals(7L, stored.customerId());
+        assertEquals("Ann Dupont", stored.name());
+        assertEquals("ann@example.com", stored.email());
         assertEquals("French", stored.language());
         assertEquals("Bonjour", stored.subject());
         assertEquals("Chère Ann", stored.body());
