@@ -86,6 +86,16 @@ Both services (Java and Node) call Bedrock and SES through the ECS task role (`b
 
 <img src="docs/customers-api-nl-assistant-ui.png" alt="NL assistant UI prototype" width="600">
 
+### Agent evals
+
+Unit tests use a fake model, so they cannot tell whether the agent behaves well. [`CompanyAgentEvalTest`](src/test/java/com/mycompany/customersapi/service/agent/eval/CompanyAgentEvalTest.java) runs real prompts against the real model and the seeded example customers, and checks the facts against direct SQL: counts and rankings, admitting when the data cannot answer, refusing to delete data, ignoring instructions hidden in customer data, never reading another company's rows, drafting in the right language (checked by an LLM judge), and the recipient cap. They cost tokens and need Bedrock and PostgreSQL, so a normal `mvn test` skips them; run them with:
+
+```bash
+mvn test -Peval
+```
+
+A single flaky failure is a signal to look at, not proof of a regression. Compare pass rates across runs when you change the prompt, the tools or the model.
+
 Not done yet: a `birthDate` per customer (so "the oldest customers" currently means the highest `age`, and birthday emails cannot target someone's actual birthday). Kendra was considered and dropped: it ranks text relevance and cannot sort or filter structured rows, and it is costly to run.
 
 ## Tech stack

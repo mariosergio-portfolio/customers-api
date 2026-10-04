@@ -22,7 +22,19 @@
         <springdoc.version>2.8.9</springdoc.version>
         <aws.sdk.version>2.55.3</aws.sdk.version>
         <jsqlparser.version>5.4</jsqlparser.version>
+        <!-- Agent evals call the real model and database: skipped by default, run with `mvn test -Peval` -->
+        <excludedGroups>eval</excludedGroups>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>eval</id>
+            <properties>
+                <groups>eval</groups>
+                <excludedGroups>none</excludedGroups>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencies>
         <!-- Spring Boot Web -->
