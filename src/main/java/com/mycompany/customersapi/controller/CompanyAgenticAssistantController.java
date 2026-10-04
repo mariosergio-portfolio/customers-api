@@ -1,8 +1,8 @@
 package com.mycompany.customersapi.controller;
 
 import com.mycompany.customersapi.config.GlobalExceptionHandler;
+import com.mycompany.customersapi.dto.AgentAskRequest;
 import com.mycompany.customersapi.dto.CompanyAgentResponse;
-import com.mycompany.customersapi.dto.CompanyAskRequest;
 import com.mycompany.customersapi.service.agent.CompanyAgenticAssistantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,14 +37,19 @@ public class CompanyAgenticAssistantController {
                     language of their country"), the agent also drafts one email per customer in the main language of
                     the customer's country. Drafts are only stored: they come back in `emailBatch` for review, and
                     nothing is sent until the batch is approved with the email-batches endpoint.
-                    Returns the answer, the last query result, every step the agent took and the drafted emails.
+                    The response carries a `sessionId`. Send it back with the next request to continue the conversation:
+                    the agent remembers what was said and can revise the drafts under review ("drop the customers from
+                    Norway", "make the first email shorter") in the same batch.
+                    Returns the answer, the last query result, every step the agent took and the batch under review.
                     """
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Answer written"),
             @ApiResponse(responseCode = "400", description = "Invalid request body",
                     content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Company has no customers",
+            @ApiResponse(responseCode = "404", description = "Company has no customers, or the session does not exist for this company",
+                    content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class))),
+            @ApiResponse(responseCode = "410", description = "The session expired; start a new one",
                     content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class))),
             @ApiResponse(responseCode = "422", description = "The agent did not finish within the step limit",
                     content = @Content(schema = @Schema(implementation = GlobalExceptionHandler.ErrorResponse.class))),
@@ -55,7 +60,7 @@ public class CompanyAgenticAssistantController {
     public ResponseEntity<CompanyAgentResponse> ask(
             @Parameter(description = "Company identifier", required = true)
             @PathVariable("companyId") @NotNull Long companyId,
-            @Valid @RequestBody CompanyAskRequest request) {
-        return ResponseEntity.ok(agenticAssistantService.ask(companyId, request.prompt()));
+            @Valid @RequestBody AgentAskRequest request) {
+        return ResponseEntity.ok(agenticAssistantService.ask(companyId, request.prompt(), request.sessionId()));
     }
 }

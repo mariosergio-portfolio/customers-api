@@ -1,7 +1,14 @@
 package com.mycompany.customersapi.service.email;
 
-import com.mycompany.customersapi.domain.Customer;
+import java.util.UUID;
 
-/** An email the agent drafted, not stored yet. The recipient comes from the customer record. */
-public record PendingDraft(Customer customer, String language, String subject, String body) {
+/**
+ * An email draft as the agent sees and edits it, before it is stored or while it waits in an open batch.
+ * The recipient comes from the customer record, never from the model.
+ *
+ * @param customerPk technical key of the customer
+ * @param customerId business id of the customer within the company, the id the model uses
+ */
+public record PendingDraft(UUID customerPk, Long customerId, String name, String email,
+                           String language, String subject, String body) {
 }

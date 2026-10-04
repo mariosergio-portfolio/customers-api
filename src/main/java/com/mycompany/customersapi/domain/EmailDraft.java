@@ -52,14 +52,14 @@ public class EmailDraft {
     @Column(name = "recipient_email", nullable = false, updatable = false, length = 255)
     private String recipientEmail;
 
-    /** Language the email was requested in, from the fixed country lookup. */
-    @Column(name = "language", nullable = false, updatable = false, length = 50)
+    /** Language the email was requested in, from the fixed country lookup. Subject and body can be rewritten while the batch is DRAFTED. */
+    @Column(name = "language", nullable = false, length = 50)
     private String language;
 
-    @Column(name = "subject", nullable = false, updatable = false, length = 255)
+    @Column(name = "subject", nullable = false, length = 255)
     private String subject;
 
-    @Column(name = "body", nullable = false, updatable = false, length = 10000)
+    @Column(name = "body", nullable = false, length = 10000)
     private String body;
 
     @Enumerated(EnumType.STRING)

@@ -1,6 +1,5 @@
 package com.mycompany.customersapi.service.email;
 
-import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.domain.EmailBatch;
 import com.mycompany.customersapi.domain.EmailBatchStatus;
 import com.mycompany.customersapi.domain.EmailDraft;
@@ -18,7 +17,13 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Stores the emails the agent drafted and sends them when a person approves the batch.
@@ -65,23 +70,96 @@ public class EmailBatchService {
                 .createdAt(now)
                 .expiresAt(now.plus(batchTtl))
                 .build();
-        for (PendingDraft pending : pendingDrafts) {
-            Customer customer = pending.customer();
-            batch.addDraft(EmailDraft.builder()
-                    .draftId(UUID.randomUUID())
-                    .customerPk(customer.getCustomerPk())
-                    .customerId(customer.getId())
-                    .recipientName(customer.getName())
-                    .recipientEmail(customer.getEmail())
-                    .language(pending.language())
-                    .subject(pending.subject())
-                    .body(pending.body())
-                    .status(EmailDraftStatus.PENDING)
-                    .build());
-        }
+        pendingDrafts.forEach(pending -> batch.addDraft(newDraft(pending)));
         batchRepository.save(batch);
         log.info("Email batch drafted: batchId={}, companyId={}, drafts={}", batch.getBatchId(), companyId, pendingDrafts.size());
         return EmailBatchResponse.from(batch);
+    }
+
+    /** The drafts of a batch still waiting for approval; empty if it is missing, sent or expired. */
+    @Transactional(readOnly = true)
+    public List<PendingDraft> openDrafts(Long companyId, UUID batchId) {
+        return batchRepository.findByBatchIdAndCompanyId(batchId, companyId)
+                .filter(batch -> batch.getStatus() == EmailBatchStatus.DRAFTED && !isExpired(batch))
+                .map(batch -> batch.getDrafts().stream().map(EmailBatchService::pendingOf).toList())
+                .orElse(List.of());
+    }
+
+    /**
+     * Makes the batch hold exactly these drafts: rewrites the ones that exist, adds new ones, removes the rest.
+     * Only a DRAFTED batch can be edited.
+     */
+    @Transactional
+    public EmailBatchResponse updateDrafts(Long companyId, UUID batchId, Collection<PendingDraft> pendingDrafts) {
+        if (pendingDrafts.isEmpty() || pendingDrafts.size() > maxRecipients) {
+            throw new IllegalArgumentException("A batch needs 1 to " + maxRecipients + " drafts, got " + pendingDrafts.size());
+        }
+        EmailBatch batch = editableBatch(companyId, batchId);
+
+        Map<UUID, EmailDraft> existing = batch.getDrafts().stream()
+                .collect(Collectors.toMap(EmailDraft::getCustomerPk, Function.identity()));
+        Set<UUID> keep = new HashSet<>();
+        for (PendingDraft pending : pendingDrafts) {
+            keep.add(pending.customerPk());
+            EmailDraft draft = existing.get(pending.customerPk());
+            if (draft == null) {
+                batch.addDraft(newDraft(pending));
+            } else {
+                draft.setLanguage(pending.language());
+                draft.setSubject(pending.subject());
+                draft.setBody(pending.body());
+            }
+        }
+        batch.getDrafts().removeIf(draft -> !keep.contains(draft.getCustomerPk()));
+        log.info("Email batch edited: batchId={}, drafts={}", batchId, batch.getDrafts().size());
+        return EmailBatchResponse.from(batch);
+    }
+
+    /** Deletes a batch that has not been sent. A batch that does not exist is ignored. */
+    @Transactional
+    public void discard(Long companyId, UUID batchId) {
+        batchRepository.lockByBatchIdAndCompanyId(batchId, companyId).ifPresent(batch -> {
+            if (batch.getStatus() != EmailBatchStatus.DRAFTED) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Batch " + batchId + " was already sent and cannot be discarded");
+            }
+            batchRepository.delete(batch);
+            log.info("Email batch discarded: batchId={}", batchId);
+        });
+    }
+
+    private EmailBatch editableBatch(Long companyId, UUID batchId) {
+        EmailBatch batch = batchRepository.lockByBatchIdAndCompanyId(batchId, companyId)
+                .orElseThrow(() -> notFound(batchId));
+        if (batch.getStatus() != EmailBatchStatus.DRAFTED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Batch " + batchId + " was already sent and cannot be edited");
+        }
+        if (isExpired(batch)) {
+            throw new ResponseStatusException(HttpStatus.GONE, "Batch " + batchId + " expired; ask the assistant to draft it again");
+        }
+        return batch;
+    }
+
+    private boolean isExpired(EmailBatch batch) {
+        return LocalDateTime.now(clock).isAfter(batch.getExpiresAt());
+    }
+
+    private static EmailDraft newDraft(PendingDraft pending) {
+        return EmailDraft.builder()
+                .draftId(UUID.randomUUID())
+                .customerPk(pending.customerPk())
+                .customerId(pending.customerId())
+                .recipientName(pending.name())
+                .recipientEmail(pending.email())
+                .language(pending.language())
+                .subject(pending.subject())
+                .body(pending.body())
+                .status(EmailDraftStatus.PENDING)
+                .build();
+    }
+
+    private static PendingDraft pendingOf(EmailDraft draft) {
+        return new PendingDraft(draft.getCustomerPk(), draft.getCustomerId(), draft.getRecipientName(),
+                draft.getRecipientEmail(), draft.getLanguage(), draft.getSubject(), draft.getBody());
     }
 
     @Transactional(readOnly = true)
@@ -106,7 +184,7 @@ public class EmailBatchService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Batch " + batchId + " was already sent");
         }
         LocalDateTime now = LocalDateTime.now(clock);
-        if (now.isAfter(batch.getExpiresAt())) {
+        if (isExpired(batch)) {
             throw new ResponseStatusException(HttpStatus.GONE, "Batch " + batchId + " expired; ask the assistant to draft it again");
         }
         if (batch.getDrafts().size() > maxRecipients) {
