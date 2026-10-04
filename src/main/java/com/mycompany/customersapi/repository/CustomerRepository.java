@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +14,9 @@ import java.util.UUID;
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     boolean existsByCompanyId(Long companyId);
+
+    /** Customers of one company by business id; ids that do not belong to the company are simply absent. */
+    List<Customer> findByCompanyIdAndIdIn(Long companyId, Collection<Long> ids);
 
     List<Customer> findByCompanyIdOrderByNameAsc(Long companyId);
 

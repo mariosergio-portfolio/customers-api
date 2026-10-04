@@ -110,6 +110,12 @@
             <artifactId>bedrockruntime</artifactId>
             <version>${aws.sdk.version}</version>
         </dependency>
+        <!-- AWS SDK v2 – SES v2 (sends the emails the company assistant drafted, after approval) -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sesv2</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
         <!-- Enables credentials from `aws login` sessions (login_session in ~/.aws/config) -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

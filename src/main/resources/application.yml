@@ -73,6 +73,11 @@ aws:
    # access-key: ${AWS_ACCESS_KEY_ID:}
    # secret-key: ${AWS_SECRET_ACCESS_KEY:}
 
+  ses:
+    region: ${AWS_SES_REGION:${AWS_REGION:us-east-1}}
+    # Verified SES sender. Empty = emails can be drafted but not sent (approving a batch answers 503).
+    from-address: ${AWS_SES_FROM_ADDRESS:}
+
   bedrock:
     region: ${AWS_BEDROCK_REGION:${AWS_REGION:us-east-1}}
     # Must be a model (or cross-region inference profile) enabled in your account/region.
@@ -91,7 +96,13 @@ aws:
     #assistant-model-id: ${AWS_BEDROCK_ASSISTANT_MODEL_ID:us.anthropic.claude-sonnet-4-5-20250929-v1:0}
     assistant-model-id: ${AWS_BEDROCK_ASSISTANT_MODEL_ID:amazon.nova-pro-v1:0}
 
-    agent-max-steps: ${AWS_BEDROCK_AGENT_MAX_STEPS:6}              # model calls per question; the last one writes the answer
-    agent-max-tokens: ${AWS_BEDROCK_AGENT_MAX_TOKENS:2048}
+    agent-max-steps: ${AWS_BEDROCK_AGENT_MAX_STEPS:8}              # model calls per request; the last one writes the answer
+    agent-max-tokens: ${AWS_BEDROCK_AGENT_MAX_TOKENS:4096}   # room for several drafted emails in one call
     agent-max-result-chars: ${AWS_BEDROCK_AGENT_MAX_RESULT_CHARS:20000}   # size of one tool result sent back to the model
     # Credentials: default AWS chain (aws login / env vars / profile / IAM role).
+
+# Emails the company assistant drafts: a person approves each batch before anything is sent.
+assistant:
+  email:
+    max-recipients: ${ASSISTANT_EMAIL_MAX_RECIPIENTS:25}      # per batch
+    batch-ttl-hours: ${ASSISTANT_EMAIL_BATCH_TTL_HOURS:24}    # approval is refused after this

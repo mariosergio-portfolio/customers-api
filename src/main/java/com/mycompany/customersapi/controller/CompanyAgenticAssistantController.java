@@ -33,7 +33,11 @@ public class CompanyAgenticAssistantController {
                     A tool-use agent answers the question: the model runs read-only SQL queries over the company's
                     customers as often as it needs, reads the rows each query returns (full customer data, including
                     names, emails and phones, is sent to the model), corrects rejected queries and writes the answer.
-                    Returns the answer, the last query result and every step the agent took.
+                    When the prompt asks for emails (for example "write a greeting for the 20 oldest customers, in the
+                    language of their country"), the agent also drafts one email per customer in the main language of
+                    the customer's country. Drafts are only stored: they come back in `emailBatch` for review, and
+                    nothing is sent until the batch is approved with the email-batches endpoint.
+                    Returns the answer, the last query result, every step the agent took and the drafted emails.
                     """
     )
     @ApiResponses({

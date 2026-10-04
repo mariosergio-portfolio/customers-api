@@ -2,12 +2,13 @@ package com.mycompany.customersapi.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "One query the assistant tried while working on the question")
+@Schema(description = "One tool call the assistant made while working on the request")
 public record AgentStep(
-        @Schema(description = "Model call this query came from, starting at 1") int round,
-        @Schema(description = "Text the model wrote next to the query (its reasoning), if any") String note,
-        @Schema(description = "SQL the model asked to run") String sql,
-        @Schema(description = "ok, rejected (the validator refused it) or failed (the database refused it)") String status,
-        @Schema(description = "Rows returned, when status is ok") Integer rowCount,
-        @Schema(description = "Why the query was rejected or failed; this text went back to the model") String error) {
+        @Schema(description = "Model call this tool call came from, starting at 1") int round,
+        @Schema(description = "Text the model wrote next to the tool call (its reasoning), if any") String note,
+        @Schema(description = "Tool the model called: run_query or draft_emails", example = "run_query") String tool,
+        @Schema(description = "SQL the model asked to run (run_query only)") String sql,
+        @Schema(description = "ok, rejected (the input was refused) or failed (the database refused the query)") String status,
+        @Schema(description = "Rows returned (run_query) or drafts stored (draft_emails), when status is ok") Integer rowCount,
+        @Schema(description = "Why the call was rejected or failed; this text went back to the model") String error) {
 }

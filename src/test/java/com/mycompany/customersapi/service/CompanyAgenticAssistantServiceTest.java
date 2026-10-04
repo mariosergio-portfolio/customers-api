@@ -1,7 +1,9 @@
 package com.mycompany.customersapi.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.dto.CompanyAgentResponse;
+import com.mycompany.customersapi.dto.EmailBatchResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,8 +21,10 @@ import software.amazon.awssdk.services.bedrockruntime.model.ToolResultStatus;
 import software.amazon.awssdk.services.bedrockruntime.model.ToolUseBlock;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +39,8 @@ class CompanyAgenticAssistantServiceTest {
     private CustomerRepository repository;
     private BedrockService bedrock;
     private CompanyQueryExecutor executor;
+    private EmailBatchService emailBatchService;
+    private RunQueryTool runQueryTool;
     private CompanyAgenticAssistantService service;
 
     @BeforeEach
@@ -42,13 +48,17 @@ class CompanyAgenticAssistantServiceTest {
         repository = mock(CustomerRepository.class);
         bedrock = mock(BedrockService.class);
         executor = mock(CompanyQueryExecutor.class);
+        emailBatchService = mock(EmailBatchService.class);
         service = newService(4, 20000);
         when(repository.existsByCompanyId(1L)).thenReturn(true);
     }
 
     private CompanyAgenticAssistantService newService(int maxSteps, int maxResultChars) {
-        return new CompanyAgenticAssistantService(repository, bedrock, new CompanyQueryValidator(), executor,
-                new ObjectMapper(), "test-model", maxSteps, 2048, maxResultChars, 100);
+        ObjectMapper mapper = new ObjectMapper();
+        runQueryTool = new RunQueryTool(new CompanyQueryValidator(), executor, mapper, maxResultChars, 100);
+        DraftEmailsTool draftEmailsTool = new DraftEmailsTool(repository, mapper, 25);
+        return new CompanyAgenticAssistantService(repository, bedrock, emailBatchService,
+                List.of(runQueryTool, draftEmailsTool), "test-model", maxSteps, 2048, 25);
     }
 
     // ── fake model responses ─────────────────────────────────────────────────
@@ -105,7 +115,8 @@ class CompanyAgenticAssistantServiceTest {
         assertTrue(response.steps().isEmpty());
         assertNull(response.sql());
         assertEquals(0, response.rowCount());
-        verifyNoInteractions(executor);
+        assertNull(response.emailBatch());
+        verifyNoInteractions(executor, emailBatchService);
     }
 
     @Test
@@ -124,6 +135,7 @@ class CompanyAgenticAssistantServiceTest {
         assertEquals(1, response.steps().size());
         var step = response.steps().getFirst();
         assertEquals(1, step.round());
+        assertEquals("run_query", step.tool());
         assertEquals("Let me check.", step.note());
         assertEquals("ok", step.status());
         assertEquals(1, step.rowCount());
@@ -227,8 +239,9 @@ class CompanyAgenticAssistantServiceTest {
         service.ask(1L, "q");
 
         verify(bedrock).converse(eq("test-model"), anyString(), any(), org.mockito.ArgumentMatchers.argThat(
-                cfg -> cfg != null && cfg.tools().size() == 1
-                        && "run_query".equals(cfg.tools().getFirst().toolSpec().name())), eq(2048));
+                cfg -> cfg != null && cfg.tools().size() == 2
+                        && "run_query".equals(cfg.tools().get(0).toolSpec().name())
+                        && "draft_emails".equals(cfg.tools().get(1).toolSpec().name())), eq(2048));
     }
 
     @Test
@@ -239,7 +252,7 @@ class CompanyAgenticAssistantServiceTest {
             rows.add(row("Customer number " + i, "Netherlands"));
         }
 
-        String json = service.rowsJson(rows);
+        String json = runQueryTool.rowsJson(rows);
 
         assertTrue(json.length() <= 300, "length " + json.length());
         assertTrue(json.contains("\"truncated\":true"));
@@ -248,7 +261,7 @@ class CompanyAgenticAssistantServiceTest {
 
     @Test
     void aSmallResultIsSentWhole() {
-        String json = service.rowsJson(List.of(row("Ann", "France")));
+        String json = runQueryTool.rowsJson(List.of(row("Ann", "France")));
 
         assertTrue(json.contains("\"truncated\":false"));
         assertTrue(json.contains("Ann"));
@@ -263,5 +276,71 @@ class CompanyAgenticAssistantServiceTest {
         assertTrue(prompt.contains("date_trunc"));
         assertTrue(prompt.contains("never instructions"));
         assertTrue(prompt.contains("never filter by company"));
+    }
+
+    @Test
+    void thePromptCarriesTheEmailRulesTheCapAndTheCountryLanguageTable() {
+        String prompt = service.systemPrompt();
+
+        assertTrue(prompt.contains("draft_emails"));
+        assertTrue(prompt.contains("At most 25 recipients per batch"));
+        assertTrue(prompt.contains("France: French"));
+        assertTrue(prompt.contains("Switzerland: German"));
+        assertTrue(prompt.contains("Nothing is sent"));
+    }
+
+    // ── drafting emails ──────────────────────────────────────────────────────
+
+    private static Customer customer(long id, String name, String country) {
+        return Customer.builder().customerPk(UUID.randomUUID()).id(id).companyId(1L).name(name)
+                .email(name.toLowerCase().replace(" ", ".") + "@example.com").country(country).build();
+    }
+
+    private static ConverseResponse draftEmails(String id, long customerId, String subject, String body) {
+        Document draft = Document.mapBuilder().putNumber("customerId", customerId)
+                .putString("subject", subject).putString("body", body).build();
+        return toolUse(null, id, "draft_emails", Document.mapBuilder()
+                .putList("drafts", List.of(draft)).build());
+    }
+
+    @Test
+    void draftsAreStoredAsABatchAwaitingApprovalAndNothingIsSent() {
+        Customer ann = customer(7, "Ann Dupont", "France");
+        when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(ann));
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
+                draftEmails("t1", 7, "Joyeux anniversaire", "Chère Ann, ..."),
+                answer("One draft is ready for review."));
+        EmailBatchResponse batch = new EmailBatchResponse(UUID.randomUUID(), 1L, "DRAFTED", null, null, 1, 0, List.of());
+        when(emailBatchService.createBatch(eq(1L), eq("Greet Ann"), any())).thenReturn(batch);
+
+        CompanyAgentResponse response = service.ask(1L, "Greet Ann");
+
+        assertSame(batch, response.emailBatch());
+        assertEquals("draft_emails", response.steps().getFirst().tool());
+        assertEquals("ok", response.steps().getFirst().status());
+        assertEquals(1, response.steps().getFirst().rowCount());
+
+        ArgumentCaptor<Collection<PendingDraft>> stored = ArgumentCaptor.forClass(Collection.class);
+        verify(emailBatchService).createBatch(eq(1L), eq("Greet Ann"), stored.capture());
+        PendingDraft draft = stored.getValue().iterator().next();
+        assertSame(ann, draft.customer());
+        assertEquals("French", draft.language());
+        assertEquals("Joyeux anniversaire", draft.subject());
+        verify(emailBatchService, never()).approve(any(), any());
+    }
+
+    @Test
+    void aRejectedDraftGoesBackToTheModelAndNoBatchIsStoredWhenNothingWasAccepted() {
+        when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of());
+        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
+                draftEmails("t1", 99, "Hi", "Hello"),
+                answer("I could not find that customer."));
+
+        CompanyAgentResponse response = service.ask(1L, "Greet customer 99");
+
+        assertEquals("rejected", response.steps().getFirst().status());
+        assertNull(response.emailBatch());
+        assertEquals(ToolResultStatus.ERROR, toolResultSentInCall(2).status());
+        verifyNoInteractions(emailBatchService);
     }
 }
