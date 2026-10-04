@@ -9,46 +9,51 @@ import com.mycompany.customersapi.service.bedrock.BedrockService;
 import com.mycompany.customersapi.service.email.PendingDraft;
 import com.mycompany.customersapi.service.query.CompanyQueryValidator;
 import com.mycompany.customersapi.service.query.GeneratedQueryException;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
+import dev.langchain4j.exception.LangChain4jException;
+import dev.langchain4j.exception.ToolArgumentsException;
+import dev.langchain4j.exception.ToolExecutionException;
+import dev.langchain4j.invocation.InvocationParameters;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.output.FinishReason;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.Result;
+import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.tool.ToolArgumentsErrorHandler;
+import dev.langchain4j.service.tool.ToolExecutionErrorHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
-import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole;
-import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
-import software.amazon.awssdk.services.bedrockruntime.model.Message;
-import software.amazon.awssdk.services.bedrockruntime.model.StopReason;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolConfiguration;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolResultBlock;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolResultContentBlock;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolResultStatus;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolUseBlock;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
- * Answers questions about a company's customers, and drafts emails to them, with a tool-use agent.
+ * Answers questions about a company's customers, and drafts emails to them, with a tool-use agent built on
+ * LangChain4j AI Services.
  *
  * Unlike {@link com.mycompany.customersapi.service.CompanyAssistantService} (one model call that writes one query), here the model drives:
  * it calls {@code run_query} as often as it needs to read the real rows, fixes rejected or failed queries,
- * and calls {@code draft_emails} to write emails in each customer's language. The service only executes tool
- * calls and enforces limits.
+ * and calls {@code draft_emails} to write emails in each customer's language. LangChain4j runs the loop
+ * (model call, tool calls, model call, ...); the service sets the limits and turns the outcome into a response.
  *
  * The agent can read and draft, never send. Drafts are stored as an email batch that a person reviews and
  * approves through a separate request, so text injected through stored customer data cannot make it deliver
  * mail: at most it can add drafts, within the recipient cap, to customers of this company. Query results,
  * including names, emails and phones, are sent to the model.
  *
- * A request can continue a session: earlier prompts and answers are replayed, and the drafts under review are
- * shown to the model so it can rewrite them ({@code draft_emails}) or drop customers ({@code remove_drafts})
- * in the same batch.
+ * A request can continue a session: earlier prompts and answers are replayed as chat memory, and the drafts
+ * under review are shown to the model so it can rewrite them ({@code draft_emails}) or drop customers
+ * ({@code remove_drafts}) in the same batch.
  */
 @Service
 @Slf4j
@@ -67,37 +72,32 @@ public class CompanyAgenticAssistantService {
             );
             """;
 
+    /** The AI Service LangChain4j implements: one user message in; the answer and the tool calls out. */
+    interface CompanyAssistant {
+        Result<String> chat(@UserMessage String message, InvocationParameters parameters);
+    }
+
     private final CustomerRepository   customerRepository;
-    private final BedrockService       bedrockService;
+    private final ChatModel            chatModel;
     private final AgentSessionService  sessions;
     private final DraftBatchCoordinator draftBatches;
-    private final Map<String, AgentTool> toolsByName;
-    private final ToolConfiguration    toolConfig;
-    private final String               modelId;
+    private final List<AgentTool>      tools;
     private final int                  maxSteps;
-    private final int                  maxTokens;
     private final int                  maxRecipients;
 
     public CompanyAgenticAssistantService(CustomerRepository customerRepository,
-                                          BedrockService bedrockService,
+                                          ChatModel chatModel,
                                           AgentSessionService sessions,
                                           DraftBatchCoordinator draftBatches,
                                           List<AgentTool> tools,
-                                          @Value("${aws.bedrock.assistant-model-id}") String modelId,
                                           @Value("${aws.bedrock.agent-max-steps:8}") int maxSteps,
-                                          @Value("${aws.bedrock.agent-max-tokens:4096}") int maxTokens,
                                           @Value("${assistant.email.max-recipients:25}") int maxRecipients) {
         this.customerRepository = customerRepository;
-        this.bedrockService = bedrockService;
+        this.chatModel = chatModel;
         this.sessions = sessions;
         this.draftBatches = draftBatches;
-        this.toolsByName = tools.stream().collect(Collectors.toMap(AgentTool::name, Function.identity()));
-        this.toolConfig = ToolConfiguration.builder()
-                .tools(tools.stream().map(AgentTool::specification).toList())
-                .build();
-        this.modelId = modelId;
+        this.tools = List.copyOf(tools);
         this.maxSteps = maxSteps;
-        this.maxTokens = maxTokens;
         this.maxRecipients = maxRecipients;
     }
 
@@ -119,84 +119,92 @@ public class CompanyAgenticAssistantService {
         List<PendingDraft> openDrafts = draftBatches.openDrafts(companyId, session.batchId());
         UUID openBatchId = openDrafts.isEmpty() ? null : session.batchId();
 
-        String system = systemPrompt();
-        List<Message> messages = new ArrayList<>(session.history());
-        messages.add(Message.builder().role(ConversationRole.USER)
-                .content(ContentBlock.fromText(prompt + draftBatches.describe(openDrafts))).build());
-
         AgentRun run = new AgentRun(companyId, openDrafts);
+        Result<String> result = chat(run, session.history(), prompt + draftBatches.describe(openDrafts));
+
+        String answer = answerOf(result);
+        List<AgentStep> steps = stepsOf(run, result);
+        log.info("Agentic ask: companyId={}, sessionId={}, rounds={}, steps={}", companyId, session.sessionId(),
+                result.intermediateResponses().size() + 1, steps.size());
+        EmailBatchResponse batch = draftBatches.save(companyId, openBatchId, run, prompt);
+        sessions.record(companyId, session.sessionId(), prompt, answer, batch == null ? null : batch.batchId());
+        return new CompanyAgentResponse(session.sessionId(), answer, run.lastSql(), run.lastRows().size(),
+                run.lastRows(), steps, batch);
+    }
+
+    // ── the model loop (LangChain4j) ─────────────────────────────────────────
+
+    /**
+     * Runs the agent loop for one request. The assistant is built per request because its chat memory holds
+     * this session's history and nothing else; building it only reads the tools' annotations.
+     */
+    private Result<String> chat(AgentRun run, List<ChatMessage> history, String message) {
+        MessageWindowChatMemory memory = MessageWindowChatMemory.withMaxMessages(Integer.MAX_VALUE);
+        history.forEach(memory::add);
+
+        CompanyAssistant assistant = AiServices.builder(CompanyAssistant.class)
+                .chatModel(chatModel)
+                .chatMemory(memory)
+                .systemMessageProvider(memoryId -> systemPrompt())
+                .tools(tools.toArray())
+                .maxToolCallingRoundTrips(maxSteps)
+                .afterToolExecution(run::completeCall)
+                // A call the model gets wrong goes back to it as an error so it can correct itself ...
+                .hallucinatedToolNameStrategy(request -> ToolExecutionResultMessage.from(request, "Unknown tool: " + request.name()))
+                .toolArgumentsErrorHandler(ToolArgumentsErrorHandler.sendExceptionMessageToLlm())
+                // ... but an unexpected failure inside a tool stops the request instead of reaching the model.
+                .toolExecutionErrorHandler(ToolExecutionErrorHandler.failInvocationUnlessVisibleToLlm())
+                .build();
+
+        try {
+            return assistant.chat(message, run.asParameters());
+        } catch (ToolExecutionException | ToolArgumentsException e) {
+            throw e;
+        } catch (LangChain4jException e) {
+            log.error("AWS Bedrock error: {}", e.getMessage());
+            throw new BedrockService.BedrockException("Bedrock invocation failed: " + e.getMessage(), e);
+        } catch (RuntimeException e) {
+            if (isStepLimit(e)) {
+                log.warn("Agentic ask did not finish: companyId={}, maxSteps={}", run.companyId(), maxSteps);
+                throw new GeneratedQueryException("The assistant did not finish within " + maxSteps + " model calls");
+            }
+            throw e;
+        }
+    }
+
+    /** LangChain4j reports an exhausted round-trip limit as a plain RuntimeException naming the setting. */
+    private static boolean isStepLimit(RuntimeException e) {
+        return e.getClass() == RuntimeException.class
+                && e.getMessage() != null && e.getMessage().contains("maxToolCallingRoundTrips");
+    }
+
+    private static String answerOf(Result<String> result) {
+        if (result.finishReason() != FinishReason.STOP) {
+            throw new BedrockService.BedrockException("The model stopped early (" + result.finishReason() + ")", null);
+        }
+        String answer = result.content() == null ? "" : result.content().strip();
+        if (answer.isEmpty()) {
+            throw new BedrockService.BedrockException("The model returned an empty answer", null);
+        }
+        return answer;
+    }
+
+    /** One step per tool call, grouped by the model call (round) that asked for it. */
+    private static List<AgentStep> stepsOf(AgentRun run, Result<String> result) {
         List<AgentStep> steps = new ArrayList<>();
-
-        for (int round = 1; round <= maxSteps; round++) {
-            ConverseResponse response = bedrockService.converse(modelId, system, List.copyOf(messages), toolConfig, maxTokens);
-            Message assistant = response.output().message();
-            messages.add(assistant);
-
-            if (response.stopReason() == StopReason.TOOL_USE) {
-                messages.add(Message.builder().role(ConversationRole.USER)
-                        .content(runTools(run, round, assistant, steps)).build());
-                continue;
-            }
-
-            if (response.stopReason() == StopReason.END_TURN || response.stopReason() == StopReason.STOP_SEQUENCE) {
-                String answer = text(assistant);
-                if (answer.isEmpty()) {
-                    throw new BedrockService.BedrockException("The model returned an empty answer", null);
-                }
-                log.info("Agentic ask: companyId={}, sessionId={}, rounds={}, steps={}", companyId, session.sessionId(), round, steps.size());
-                EmailBatchResponse batch = draftBatches.save(companyId, openBatchId, run, prompt);
-                sessions.record(companyId, session.sessionId(), prompt, answer, batch == null ? null : batch.batchId());
-                return new CompanyAgentResponse(session.sessionId(), answer, run.lastSql(), run.lastRows().size(),
-                        run.lastRows(), List.copyOf(steps), batch);
-            }
-
-            throw new BedrockService.BedrockException(
-                    "The model stopped early (" + response.stopReasonAsString() + ")", null);
-        }
-
-        log.warn("Agentic ask did not finish: companyId={}, steps={}", companyId, steps);
-        throw new GeneratedQueryException("The assistant did not finish within " + maxSteps + " model calls");
-    }
-
-    // ── tool execution ───────────────────────────────────────────────────────
-
-    private List<ContentBlock> runTools(AgentRun run, int round, Message assistant, List<AgentStep> steps) {
-        String note = text(assistant);
-        List<ContentBlock> results = new ArrayList<>();
-        for (ContentBlock block : assistant.content()) {
-            ToolUseBlock toolUse = block.toolUse();
-            if (toolUse == null) {
-                continue;
-            }
-            ToolResult result = runTool(run, toolUse);
-            steps.add(new AgentStep(round, note.isEmpty() ? null : note, toolUse.name(), result.sql(),
-                    result.status(), result.count(), result.error()));
-            note = "";   // the note belongs to the first call of this round
-            results.add(ContentBlock.fromToolResult(ToolResultBlock.builder()
-                    .toolUseId(toolUse.toolUseId())
-                    .content(ToolResultContentBlock.fromText(result.content()))
-                    .status(result.isOk() ? ToolResultStatus.SUCCESS : ToolResultStatus.ERROR)
-                    .build()));
-        }
-        return results;
-    }
-
-    private ToolResult runTool(AgentRun run, ToolUseBlock toolUse) {
-        AgentTool tool = toolsByName.get(toolUse.name());
-        if (tool == null) {
-            return ToolResult.rejected("Unknown tool: " + toolUse.name(), null);
-        }
-        return tool.execute(run, toolUse.input());
-    }
-
-    private static String text(Message message) {
-        StringBuilder sb = new StringBuilder();
-        for (ContentBlock block : message.content()) {
-            if (block.text() != null) {
-                sb.append(block.text());
+        int round = 0;
+        for (ChatResponse response : result.intermediateResponses()) {
+            round++;
+            AiMessage message = response.aiMessage();
+            String note = message.text() == null ? "" : message.text().strip();
+            for (ToolExecutionRequest request : message.toolExecutionRequests()) {
+                ToolResult outcome = run.outcomeOf(request.id());
+                steps.add(new AgentStep(round, note.isEmpty() ? null : note, request.name(), outcome.sql(),
+                        outcome.status(), outcome.count(), outcome.error()));
+                note = "";   // the note belongs to the first call of this round
             }
         }
-        return sb.toString().trim();
+        return List.copyOf(steps);
     }
 
     // ── prompt ───────────────────────────────────────────────────────────────

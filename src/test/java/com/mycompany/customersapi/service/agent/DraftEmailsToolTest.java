@@ -6,7 +6,6 @@ import com.mycompany.customersapi.repository.CustomerRepository;
 import com.mycompany.customersapi.service.email.PendingDraft;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.document.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,24 +39,12 @@ class DraftEmailsToolTest {
         when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(customers));
     }
 
-    private static Document draft(Object customerId, String subject, String body) {
-        var builder = Document.mapBuilder();
-        if (customerId instanceof Number n) {
-            builder.putNumber("customerId", n.longValue());
-        } else if (customerId instanceof String s) {
-            builder.putString("customerId", s);
-        }
-        if (subject != null) {
-            builder.putString("subject", subject);
-        }
-        if (body != null) {
-            builder.putString("body", body);
-        }
-        return builder.build();
+    private static DraftEmailsTool.DraftItem draft(Number customerId, String subject, String body) {
+        return new DraftEmailsTool.DraftItem(customerId == null ? null : customerId.longValue(), subject, body);
     }
 
-    private static Document input(Document... drafts) {
-        return Document.mapBuilder().putList("drafts", List.of(drafts)).build();
+    private static List<DraftEmailsTool.DraftItem> input(DraftEmailsTool.DraftItem... drafts) {
+        return List.of(drafts);
     }
 
     // ── what is accepted ─────────────────────────────────────────────────────
@@ -88,15 +75,6 @@ class DraftEmailsToolTest {
         tool.execute(run, input(draft(1, "s", "b"), draft(2, "s", "b")));
 
         assertEquals(List.of("English", "English"), run.drafts().stream().map(PendingDraft::language).toList());
-    }
-
-    @Test
-    void should_accept_a_customer_id_sent_as_a_string_of_digits() {
-        customersExist(customer(7, "Ann", "France", "ann@example.com"));
-
-        ToolResult result = tool.execute(run, input(draft("7", "s", "b")));
-
-        assertTrue(result.isOk());
     }
 
     @Test
@@ -159,32 +137,30 @@ class DraftEmailsToolTest {
 
     @Test
     void should_refuse_more_than_the_per_call_limit() {
-        List<Document> drafts = new ArrayList<>();
+        List<DraftEmailsTool.DraftItem> drafts = new ArrayList<>();
         for (int i = 0; i < DraftEmailsTool.MAX_DRAFTS_PER_CALL + 1; i++) {
             drafts.add(draft(i, "s", "b"));
         }
 
-        ToolResult result = tool.execute(run, input(drafts.toArray(new Document[0])));
+        ToolResult result = tool.execute(run, drafts);
 
         assertEquals("rejected", result.status());
         assertEquals(0, run.draftCount());
     }
 
     @Test
-    void should_refuse_missing_fields_and_bad_ids() {
+    void should_refuse_missing_fields_and_a_missing_id() {
         customersExist(customer(1, "Ann", "France", "ann@example.com"));
 
         assertEquals("rejected", tool.execute(run, input(draft(1, null, "b"))).status());
         assertEquals("rejected", tool.execute(run, input(draft(1, "s", null))).status());
         assertEquals("rejected", tool.execute(run, input(draft(1, "s", "x".repeat(DraftEmailsTool.MAX_BODY_CHARS + 1)))).status());
-        assertEquals("rejected", tool.execute(run, input(draft("abc", "s", "b"))).status());
         assertEquals("rejected", tool.execute(run, input(draft(null, "s", "b"))).status());
         assertEquals(0, run.draftCount());
     }
 
     @Test
     void should_refuse_a_missing_or_empty_drafts_argument() {
-        assertEquals("rejected", tool.execute(run, Document.mapBuilder().build()).status());
         assertEquals("rejected", tool.execute(run, input()).status());
         assertEquals("rejected", tool.execute(run, null).status());
     }

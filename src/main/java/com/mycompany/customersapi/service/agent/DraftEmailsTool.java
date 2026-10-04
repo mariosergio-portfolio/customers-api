@@ -6,13 +6,13 @@ import com.mycompany.customersapi.domain.CountryLanguage;
 import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.repository.CustomerRepository;
 import com.mycompany.customersapi.service.email.PendingDraft;
+import dev.langchain4j.agent.tool.P;
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.invocation.InvocationParameters;
+import dev.langchain4j.model.output.structured.Description;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.core.document.Document;
-import software.amazon.awssdk.services.bedrockruntime.model.Tool;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolInputSchema;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolSpecification;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -40,10 +40,16 @@ class DraftEmailsTool implements AgentTool {
     static final int MAX_SUBJECT_CHARS   = 200;
     static final int MAX_BODY_CHARS      = 5000;
 
+    /** One email the model wants to draft. Fields may be null: the model's output is checked, not trusted. */
+    record DraftItem(
+            @Description("The id column of the customer, as returned by run_query") Long customerId,
+            @Description("Email subject, one line") String subject,
+            @Description("Email body, plain text, in the customer's language") String body) {
+    }
+
     private final CustomerRepository customerRepository;
     private final ObjectMapper       objectMapper;
     private final int                maxRecipients;
-    private final Tool               specification;
 
     DraftEmailsTool(CustomerRepository customerRepository,
                     ObjectMapper objectMapper,
@@ -51,30 +57,26 @@ class DraftEmailsTool implements AgentTool {
         this.customerRepository = customerRepository;
         this.objectMapper = objectMapper;
         this.maxRecipients = maxRecipients;
-        this.specification = buildSpecification(maxRecipients);
     }
 
-    @Override
-    public String name() {
-        return NAME;
+    @Tool(name = NAME, value = "Drafts emails for customers of this company. Nothing is sent: a person reviews the drafts and "
+            + "approves them afterwards. Give each customer's id, a subject and a body; the recipient address is added "
+            + "from the customer record. At most " + MAX_DRAFTS_PER_CALL + " drafts per call, and the batch has a cap. "
+            + "Drafting a customer again replaces the earlier draft.")
+    String draftEmails(@P("The emails to draft") List<DraftItem> drafts, InvocationParameters parameters) {
+        AgentRun run = AgentRun.from(parameters);
+        return run.report(execute(run, drafts));
     }
 
-    @Override
-    public Tool specification() {
-        return specification;
-    }
-
-    @Override
-    public ToolResult execute(AgentRun run, Document input) {
-        List<Document> items = draftItems(input);
-        if (items.isEmpty()) {
+    ToolResult execute(AgentRun run, List<DraftItem> items) {
+        if (items == null || items.isEmpty()) {
             return ToolResult.rejected("The drafts argument is missing or empty", null);
         }
         if (items.size() > MAX_DRAFTS_PER_CALL) {
             return ToolResult.rejected("Send at most " + MAX_DRAFTS_PER_CALL + " drafts per call and call again for the rest", null);
         }
 
-        Set<Long> ids = items.stream().map(DraftEmailsTool::customerIdOf).filter(Objects::nonNull)
+        Set<Long> ids = items.stream().map(DraftItem::customerId).filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         Map<Long, Customer> customers = ids.isEmpty() ? Map.of()
                 : customerRepository.findByCompanyIdAndIdIn(run.companyId(), ids).stream()
@@ -82,17 +84,15 @@ class DraftEmailsTool implements AgentTool {
 
         List<Map<String, Object>> rejected = new ArrayList<>();
         int accepted = 0;
-        for (Document item : items) {
-            Long customerId = customerIdOf(item);
-            String reason = refusal(run, item, customerId, customers);
+        for (DraftItem item : items) {
+            String reason = refusal(run, item, customers);
             if (reason != null) {
-                rejected.add(rejection(customerId, reason));
+                rejected.add(rejection(item.customerId(), reason));
                 continue;
             }
-            Customer customer = customers.get(customerId);
+            Customer customer = customers.get(item.customerId());
             run.putDraft(new PendingDraft(customer.getCustomerPk(), customer.getId(), customer.getName(), customer.getEmail(),
-                    CountryLanguage.languageOf(customer.getCountry()),
-                    cleanLine(textOf(item, "subject")), textOf(item, "body").strip()));
+                    CountryLanguage.languageOf(customer.getCountry()), cleanLine(item.subject()), item.body().strip()));
             accepted++;
         }
 
@@ -105,9 +105,10 @@ class DraftEmailsTool implements AgentTool {
     }
 
     /** Why this draft cannot be stored, or null if it can. A re-draft for the same customer replaces the old one. */
-    private String refusal(AgentRun run, Document item, Long customerId, Map<Long, Customer> customers) {
+    private String refusal(AgentRun run, DraftItem item, Map<Long, Customer> customers) {
+        Long customerId = item.customerId();
         if (customerId == null) {
-            return "customerId is missing or not a whole number";
+            return "customerId is missing";
         }
         Customer customer = customers.get(customerId);
         if (customer == null) {
@@ -116,11 +117,11 @@ class DraftEmailsTool implements AgentTool {
         if (customer.getEmail() == null || customer.getEmail().isBlank()) {
             return "the customer has no email address";
         }
-        String subject = cleanLine(textOf(item, "subject"));
+        String subject = cleanLine(item.subject());
         if (subject.isEmpty() || subject.length() > MAX_SUBJECT_CHARS) {
             return "subject must be 1 to " + MAX_SUBJECT_CHARS + " characters";
         }
-        String body = textOf(item, "body").strip();
+        String body = item.body() == null ? "" : item.body().strip();
         if (body.isEmpty() || body.length() > MAX_BODY_CHARS) {
             return "body must be 1 to " + MAX_BODY_CHARS + " characters";
         }
@@ -137,39 +138,9 @@ class DraftEmailsTool implements AgentTool {
         return rejection;
     }
 
-    private static List<Document> draftItems(Document input) {
-        if (input == null || !input.isMap()) {
-            return List.of();
-        }
-        Document drafts = input.asMap().get("drafts");
-        return drafts != null && drafts.isList()
-                ? drafts.asList().stream().filter(Document::isMap).toList()
-                : List.of();
-    }
-
-    private static Long customerIdOf(Document item) {
-        Document id = item.asMap().get("customerId");
-        if (id == null) {
-            return null;
-        }
-        if (id.isNumber()) {
-            double value = id.asNumber().doubleValue();
-            return value == Math.rint(value) ? (long) value : null;
-        }
-        if (id.isString() && id.asString().strip().matches("\\d{1,18}")) {
-            return Long.parseLong(id.asString().strip());
-        }
-        return null;
-    }
-
-    private static String textOf(Document item, String field) {
-        Document value = item.asMap().get(field);
-        return value != null && value.isString() ? value.asString() : "";
-    }
-
     /** One line, no control characters, so a subject can never carry extra mail headers. */
     private static String cleanLine(String value) {
-        return value.replaceAll("[\\p{Cntrl}]+", " ").replaceAll("\\s+", " ").trim();
+        return value == null ? "" : value.replaceAll("[\\p{Cntrl}]+", " ").replaceAll("\\s+", " ").trim();
     }
 
     private String json(Object value) {
@@ -178,45 +149,5 @@ class DraftEmailsTool implements AgentTool {
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Could not serialize a tool result", e);
         }
-    }
-
-    private static Tool buildSpecification(int maxRecipients) {
-        Document draft = Document.mapBuilder()
-                .putString("type", "object")
-                .putDocument("properties", Document.mapBuilder()
-                        .putDocument("customerId", Document.mapBuilder()
-                                .putString("type", "integer")
-                                .putString("description", "The id column of the customer, as returned by run_query")
-                                .build())
-                        .putDocument("subject", Document.mapBuilder()
-                                .putString("type", "string")
-                                .putString("description", "Email subject, one line")
-                                .build())
-                        .putDocument("body", Document.mapBuilder()
-                                .putString("type", "string")
-                                .putString("description", "Email body, plain text, in the customer's language")
-                                .build())
-                        .build())
-                .putList("required", List.of(Document.fromString("customerId"), Document.fromString("subject"),
-                        Document.fromString("body")))
-                .build();
-        Document schema = Document.mapBuilder()
-                .putString("type", "object")
-                .putDocument("properties", Document.mapBuilder()
-                        .putDocument("drafts", Document.mapBuilder()
-                                .putString("type", "array")
-                                .putDocument("items", draft)
-                                .build())
-                        .build())
-                .putList("required", List.of(Document.fromString("drafts")))
-                .build();
-        return Tool.fromToolSpec(ToolSpecification.builder()
-                .name(NAME)
-                .description("Drafts emails for customers of this company. Nothing is sent: a person reviews the drafts and "
-                        + "approves them afterwards. Give each customer's id, a subject and a body; the recipient address is added "
-                        + "from the customer record. At most " + MAX_DRAFTS_PER_CALL + " drafts per call and " + maxRecipients
-                        + " recipients per batch. Drafting a customer again replaces the earlier draft.")
-                .inputSchema(ToolInputSchema.fromJson(schema))
-                .build());
     }
 }

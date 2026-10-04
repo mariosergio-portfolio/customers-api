@@ -7,6 +7,10 @@ import com.mycompany.customersapi.repository.CustomerRepository;
 import com.mycompany.customersapi.service.email.EmailBatchService;
 import com.mycompany.customersapi.service.email.EmailSender;
 import com.mycompany.customersapi.service.email.PendingDraft;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.ChatMessageType;
+import dev.langchain4j.data.message.UserMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -16,8 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole;
-import software.amazon.awssdk.services.bedrockruntime.model.Message;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -94,9 +96,9 @@ class AgentPersistenceIntegrationTest {
 
         AgentSessionService.SessionState state = sessions.open(COMPANY, sessionId);
         assertEquals(List.of("first question", "first answer", "second question", "second answer"),
-                state.history().stream().map(m -> m.content().getFirst().text()).toList());
-        assertEquals(List.of(ConversationRole.USER, ConversationRole.ASSISTANT, ConversationRole.USER, ConversationRole.ASSISTANT),
-                state.history().stream().map(Message::role).toList());
+                state.history().stream().map(m -> m instanceof UserMessage user ? user.singleText() : ((AiMessage) m).text()).toList());
+        assertEquals(List.of(ChatMessageType.USER, ChatMessageType.AI, ChatMessageType.USER, ChatMessageType.AI),
+                state.history().stream().map(ChatMessage::type).toList());
         assertNull(state.batchId(), "the pointer follows the latest turn");
     }
 

@@ -6,13 +6,12 @@ import com.mycompany.customersapi.service.query.GeneratedQueryException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.langchain4j.agent.tool.P;
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.invocation.InvocationParameters;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.core.document.Document;
-import software.amazon.awssdk.services.bedrockruntime.model.Tool;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolInputSchema;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolSpecification;
 
 import java.util.List;
 import java.util.Map;
@@ -34,33 +33,26 @@ class RunQueryTool implements AgentTool {
     private final CompanyQueryExecutor  executor;
     private final ObjectMapper          objectMapper;
     private final int                   maxResultChars;
-    private final Tool                  specification;
 
     RunQueryTool(CompanyQueryValidator validator,
                  CompanyQueryExecutor executor,
                  ObjectMapper objectMapper,
-                 @Value("${aws.bedrock.agent-max-result-chars:20000}") int maxResultChars,
-                 @Value("${aws.bedrock.company-query-max-rows:100}") int maxRows) {
+                 @Value("${aws.bedrock.agent-max-result-chars:20000}") int maxResultChars) {
         this.validator = validator;
         this.executor = executor;
         this.objectMapper = objectMapper;
         this.maxResultChars = maxResultChars;
-        this.specification = buildSpecification(maxRows);
     }
 
-    @Override
-    public String name() {
-        return NAME;
+    @Tool(name = NAME, value = "Runs one read-only SELECT over the customer table (already limited to this company) and "
+            + "returns {rowCount, rows}. The number of rows is capped: when truncated is true, narrow the query.")
+    String runQuery(@P("One PostgreSQL SELECT statement over the customer table") String sql,
+                    InvocationParameters parameters) {
+        AgentRun run = AgentRun.from(parameters);
+        return run.report(execute(run, sql));
     }
 
-    @Override
-    public Tool specification() {
-        return specification;
-    }
-
-    @Override
-    public ToolResult execute(AgentRun run, Document input) {
-        String sql = sqlOf(input);
+    ToolResult execute(AgentRun run, String sql) {
         if (sql == null || sql.isBlank()) {
             return ToolResult.rejected("The sql argument is missing", null);
         }
@@ -102,32 +94,5 @@ class RunQueryTool implements AgentTool {
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Could not serialize a tool result", e);
         }
-    }
-
-    private static String sqlOf(Document input) {
-        if (input == null || !input.isMap()) {
-            return null;
-        }
-        Document sql = input.asMap().get("sql");
-        return sql != null && sql.isString() ? sql.asString() : null;
-    }
-
-    private static Tool buildSpecification(int maxRows) {
-        Document schema = Document.mapBuilder()
-                .putString("type", "object")
-                .putDocument("properties", Document.mapBuilder()
-                        .putDocument("sql", Document.mapBuilder()
-                                .putString("type", "string")
-                                .putString("description", "One PostgreSQL SELECT statement over the customer table")
-                                .build())
-                        .build())
-                .putList("required", List.of(Document.fromString("sql")))
-                .build();
-        return Tool.fromToolSpec(ToolSpecification.builder()
-                .name(NAME)
-                .description("Runs one read-only SELECT over the customer table (already limited to this company) and "
-                        + "returns {rowCount, rows}. At most " + maxRows + " rows come back.")
-                .inputSchema(ToolInputSchema.fromJson(schema))
-                .build());
     }
 }

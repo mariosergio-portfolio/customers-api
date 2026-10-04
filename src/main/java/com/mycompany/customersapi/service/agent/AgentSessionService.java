@@ -4,14 +4,14 @@ import com.mycompany.customersapi.domain.AgentSession;
 import com.mycompany.customersapi.domain.AgentTurn;
 import com.mycompany.customersapi.domain.AgentTurnRole;
 import com.mycompany.customersapi.repository.AgentSessionRepository;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
-import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole;
-import software.amazon.awssdk.services.bedrockruntime.model.Message;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -48,7 +48,7 @@ public class AgentSessionService {
     }
 
     /** What a run starts from: the session id (new if none was given), the recent history and the open batch. */
-    public record SessionState(UUID sessionId, List<Message> history, UUID batchId) {
+    public record SessionState(UUID sessionId, List<ChatMessage> history, UUID batchId) {
     }
 
     /**
@@ -82,7 +82,7 @@ public class AgentSessionService {
     }
 
     /** The last maxTurnPairs prompt/answer pairs, oldest first, always starting with a user message. */
-    private List<Message> history(AgentSession session) {
+    private List<ChatMessage> history(AgentSession session) {
         List<AgentTurn> turns = session.getTurns();
         int from = Math.max(0, turns.size() - 2 * maxTurnPairs);
         if (from % 2 == 1) {
@@ -91,11 +91,8 @@ public class AgentSessionService {
         return turns.subList(from, turns.size()).stream().map(AgentSessionService::toMessage).toList();
     }
 
-    private static Message toMessage(AgentTurn turn) {
-        return Message.builder()
-                .role(turn.getRole() == AgentTurnRole.USER ? ConversationRole.USER : ConversationRole.ASSISTANT)
-                .content(ContentBlock.fromText(turn.getText()))
-                .build();
+    private static ChatMessage toMessage(AgentTurn turn) {
+        return turn.getRole() == AgentTurnRole.USER ? UserMessage.from(turn.getText()) : AiMessage.from(turn.getText());
     }
 
     private static String truncate(String text) {

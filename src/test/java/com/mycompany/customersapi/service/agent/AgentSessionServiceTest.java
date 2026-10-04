@@ -4,13 +4,15 @@ import com.mycompany.customersapi.domain.AgentSession;
 import com.mycompany.customersapi.domain.AgentTurn;
 import com.mycompany.customersapi.domain.AgentTurnRole;
 import com.mycompany.customersapi.repository.AgentSessionRepository;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.ChatMessageType;
+import dev.langchain4j.data.message.UserMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole;
-import software.amazon.awssdk.services.bedrockruntime.model.Message;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -52,8 +54,8 @@ class AgentSessionServiceTest {
         return LocalDateTime.now(clock).minusMinutes(5);
     }
 
-    private static String textOf(Message message) {
-        return message.content().getFirst().text();
+    private static String textOf(ChatMessage message) {
+        return message instanceof UserMessage user ? user.singleText() : ((AiMessage) message).text();
     }
 
     // ── open ─────────────────────────────────────────────────────────────────
@@ -80,8 +82,8 @@ class AgentSessionServiceTest {
 
         assertEquals(id, state.sessionId());
         assertEquals(batch, state.batchId());
-        assertEquals(List.of(ConversationRole.USER, ConversationRole.ASSISTANT),
-                state.history().stream().map(Message::role).toList());
+        assertEquals(List.of(ChatMessageType.USER, ChatMessageType.AI),
+                state.history().stream().map(ChatMessage::type).toList());
         assertEquals(List.of("first question", "first answer"), state.history().stream().map(AgentSessionServiceTest::textOf).toList());
     }
 
@@ -91,10 +93,10 @@ class AgentSessionServiceTest {
         when(repository.findBySessionIdAndCompanyId(id, 1L)).thenReturn(Optional.of(
                 session(id, recently(), "q1", "a1", "q2", "a2", "q3", "a3")));   // maxTurnPairs = 2
 
-        List<Message> history = service.open(1L, id).history();
+        List<ChatMessage> history = service.open(1L, id).history();
 
         assertEquals(List.of("q2", "a2", "q3", "a3"), history.stream().map(AgentSessionServiceTest::textOf).toList());
-        assertEquals(ConversationRole.USER, history.getFirst().role());
+        assertEquals(ChatMessageType.USER, history.getFirst().type());
     }
 
     @Test

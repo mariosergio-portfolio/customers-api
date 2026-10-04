@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.customersapi.service.email.PendingDraft;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.document.Document;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,13 +27,9 @@ class RemoveDraftsToolTest {
                 "French", "subject", "body");
     }
 
-    private static Document ids(Document... ids) {
-        return Document.mapBuilder().putList("customerIds", List.of(ids)).build();
-    }
-
     @Test
     void should_remove_the_requested_drafts_and_keep_the_others() {
-        ToolResult result = tool.execute(run, ids(Document.fromNumber(2L)));
+        ToolResult result = tool.execute(run, List.of(2L));
 
         assertTrue(result.isOk());
         assertEquals(1, result.count());
@@ -46,7 +42,7 @@ class RemoveDraftsToolTest {
 
     @Test
     void should_report_ids_that_have_no_draft_and_still_remove_the_others() {
-        ToolResult result = tool.execute(run, ids(Document.fromNumber(1L), Document.fromNumber(99L)));
+        ToolResult result = tool.execute(run, List.of(1L, 99L));
 
         assertTrue(result.isOk());
         assertTrue(result.content().contains("\"notInBatch\":[99]"));
@@ -54,16 +50,8 @@ class RemoveDraftsToolTest {
     }
 
     @Test
-    void should_accept_ids_sent_as_strings_of_digits() {
-        ToolResult result = tool.execute(run, ids(Document.fromString("3")));
-
-        assertTrue(result.isOk());
-        assertFalse(run.hasDraftFor(3L));
-    }
-
-    @Test
     void should_reject_when_nothing_was_removed() {
-        ToolResult result = tool.execute(run, ids(Document.fromNumber(99L)));
+        ToolResult result = tool.execute(run, List.of(99L));
 
         assertEquals("rejected", result.status());
         assertEquals(3, run.draftCount());
@@ -71,10 +59,9 @@ class RemoveDraftsToolTest {
     }
 
     @Test
-    void should_reject_a_missing_empty_or_invalid_ids_argument() {
-        assertEquals("rejected", tool.execute(run, Document.mapBuilder().build()).status());
-        assertEquals("rejected", tool.execute(run, ids()).status());
-        assertEquals("rejected", tool.execute(run, ids(Document.fromString("abc"), Document.fromNumber(1.5))).status());
+    void should_ignore_null_ids_and_reject_a_missing_or_empty_ids_argument() {
+        assertEquals("rejected", tool.execute(run, List.of()).status());
+        assertEquals("rejected", tool.execute(run, Arrays.asList((Long) null)).status());
         assertEquals("rejected", tool.execute(run, null).status());
         assertEquals(3, run.draftCount());
     }

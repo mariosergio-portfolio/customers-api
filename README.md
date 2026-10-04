@@ -69,7 +69,7 @@ The frontend calls the Customers API, which queries PostgreSQL for customer data
 
 ## Natural-language customer assistant (agent)
 
-Ask in plain language and act on the result, e.g. *"write a thank-you email for the 20 oldest customers, in the main language of each customer's country"*. `POST /api/companies/{companyId}/agentic-ask` runs a tool-use agent on Amazon Bedrock (`aws.bedrock.assistant-model-id`, a model that supports tool use). The model decides which tools to call and how often:
+Ask in plain language and act on the result, e.g. *"write a thank-you email for the 20 oldest customers, in the main language of each customer's country"*. `POST /api/companies/{companyId}/agentic-ask` runs a tool-use agent on Amazon Bedrock (`aws.bedrock.assistant-model-id`, a model that supports tool use), built with [LangChain4j](https://docs.langchain4j.dev/): the tools are `@Tool` methods, and its AI Services run the model-and-tools loop (limited by `aws.bedrock.agent-max-steps`). The model decides which tools to call and how often:
 
 1. **Understand and search** — the `run_query` tool. The model writes one read-only `SELECT` at a time (filters, ordering, `LIMIT`); the service validates it, scopes it to the company, and returns the rows. It reads the answer, retries rejected queries, and never touches data outside the company.
 2. **Act** — the `draft_emails` tool. The model writes one email per customer (subject and body) in the main language of the customer's country. The language comes from a fixed country → language lookup ([`CountryLanguage`](src/main/java/com/mycompany/customersapi/domain/CountryLanguage.java)), unknown countries fall back to English. The recipient address always comes from the customer record, never from the model.

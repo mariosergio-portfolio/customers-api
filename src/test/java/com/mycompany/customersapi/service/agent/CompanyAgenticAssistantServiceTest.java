@@ -11,30 +11,37 @@ import com.mycompany.customersapi.service.email.PendingDraft;
 import com.mycompany.customersapi.service.query.CompanyQueryExecutor;
 import com.mycompany.customersapi.service.query.CompanyQueryValidator;
 import com.mycompany.customersapi.service.query.GeneratedQueryException;
+import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.exception.RateLimitException;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.core.document.Document;
-import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
-import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole;
-import software.amazon.awssdk.services.bedrockruntime.model.ConverseOutput;
-import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
-import software.amazon.awssdk.services.bedrockruntime.model.Message;
-import software.amazon.awssdk.services.bedrockruntime.model.StopReason;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolResultBlock;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolResultStatus;
-import software.amazon.awssdk.services.bedrockruntime.model.ToolUseBlock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import static com.mycompany.customersapi.service.agent.ScriptedChatModel.answer;
+import static com.mycompany.customersapi.service.agent.ScriptedChatModel.cutOff;
+import static com.mycompany.customersapi.service.agent.ScriptedChatModel.json;
+import static com.mycompany.customersapi.service.agent.ScriptedChatModel.request;
+import static com.mycompany.customersapi.service.agent.ScriptedChatModel.toolCall;
+import static com.mycompany.customersapi.service.agent.ScriptedChatModel.toolCalls;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -43,80 +50,50 @@ import static org.mockito.Mockito.*;
 class CompanyAgenticAssistantServiceTest {
 
     private CustomerRepository repository;
-    private BedrockService bedrock;
     private CompanyQueryExecutor executor;
     private EmailBatchService emailBatchService;
     private AgentSessionService sessions;
     private RunQueryTool runQueryTool;
+    private ScriptedChatModel model;
     private CompanyAgenticAssistantService service;
 
     @BeforeEach
     void setUp() {
         repository = mock(CustomerRepository.class);
-        bedrock = mock(BedrockService.class);
         executor = mock(CompanyQueryExecutor.class);
         emailBatchService = mock(EmailBatchService.class);
         sessions = mock(AgentSessionService.class);
         when(sessions.open(any(), any())).thenReturn(new AgentSessionService.SessionState(UUID.randomUUID(), List.of(), null));
-        service = newService(4, 20000);
         when(repository.existsByCompanyId(1L)).thenReturn(true);
     }
 
-    private CompanyAgenticAssistantService newService(int maxSteps, int maxResultChars) {
+    /** Builds the service over a model that replays these replies (see {@link ScriptedChatModel}). */
+    private ScriptedChatModel script(Object... replies) {
+        return scriptWithLimits(4, 20000, replies);
+    }
+
+    private ScriptedChatModel scriptWithLimits(int maxSteps, int maxResultChars, Object... replies) {
+        model = new ScriptedChatModel(replies);
         ObjectMapper mapper = new ObjectMapper();
-        runQueryTool = new RunQueryTool(new CompanyQueryValidator(), executor, mapper, maxResultChars, 100);
-        DraftEmailsTool draftEmailsTool = new DraftEmailsTool(repository, mapper, 25);
-        return new CompanyAgenticAssistantService(repository, bedrock, sessions, new DraftBatchCoordinator(emailBatchService),
-                List.of(runQueryTool, draftEmailsTool, new RemoveDraftsTool(mapper)), "test-model", maxSteps, 2048, 25);
-    }
-
-    // ── fake model responses ─────────────────────────────────────────────────
-
-    private static ConverseResponse response(StopReason stop, ContentBlock... content) {
-        return ConverseResponse.builder()
-                .stopReason(stop)
-                .output(ConverseOutput.builder()
-                        .message(Message.builder().role(ConversationRole.ASSISTANT).content(content).build())
-                        .build())
-                .build();
-    }
-
-    private static ConverseResponse answer(String text) {
-        return response(StopReason.END_TURN, ContentBlock.fromText(text));
-    }
-
-    private static ConverseResponse toolUse(String note, String id, String name, Document input) {
-        List<ContentBlock> blocks = new ArrayList<>();
-        if (note != null) {
-            blocks.add(ContentBlock.fromText(note));
-        }
-        blocks.add(ContentBlock.fromToolUse(ToolUseBlock.builder().toolUseId(id).name(name).input(input).build()));
-        return response(StopReason.TOOL_USE, blocks.toArray(new ContentBlock[0]));
-    }
-
-    private static ConverseResponse runQuery(String note, String id, String sql) {
-        return toolUse(note, id, "run_query", Document.mapBuilder().putString("sql", sql).build());
-    }
-
-    /** The tool result the service sent back in the n-th model call (1-based). */
-    private ToolResultBlock toolResultSentInCall(int call) {
-        ArgumentCaptor<List<Message>> messages = ArgumentCaptor.forClass(List.class);
-        verify(bedrock, atLeast(call)).converse(anyString(), anyString(), messages.capture(), any(), anyInt());
-        List<Message> sent = messages.getAllValues().get(call - 1);
-        Message last = sent.getLast();
-        assertEquals(ConversationRole.USER, last.role());
-        return last.content().getFirst().toolResult();
+        runQueryTool = new RunQueryTool(new CompanyQueryValidator(), executor, mapper, maxResultChars);
+        service = new CompanyAgenticAssistantService(repository, model, sessions, new DraftBatchCoordinator(emailBatchService),
+                List.of(runQueryTool, new DraftEmailsTool(repository, mapper, 25), new RemoveDraftsTool(mapper)), maxSteps, 25);
+        return model;
     }
 
     private static Map<String, Object> row(String name, String country) {
         return Map.of("name", name, "country", country);
     }
 
+    private static String runQueryArguments(String sql) {
+        return json(Map.of("sql", sql));
+    }
+
     // ── behavior ─────────────────────────────────────────────────────────────
 
     @Test
     void answersDirectlyWhenNoQueryIsNeeded() {
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("I can't tell from this data."));
+        script(answer("I can't tell from this data."));
 
         CompanyAgentResponse response = service.ask(1L, "What is the weather?");
 
@@ -130,8 +107,7 @@ class CompanyAgenticAssistantServiceTest {
 
     @Test
     void runsTheQuerySendsFullRowsBackAndAnswersFromThem() {
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                runQuery("Let me check.", "t1", "SELECT name, country FROM customer"),
+        script(toolCall("Let me check.", "t1", "run_query", runQueryArguments("SELECT name, country FROM customer")),
                 answer("Ann lives in France."));
         when(executor.execute(eq(1L), anyString())).thenReturn(List.of(row("Ann", "France")));
 
@@ -150,18 +126,16 @@ class CompanyAgenticAssistantServiceTest {
         assertEquals(1, step.rowCount());
         assertNull(step.error());
 
-        ToolResultBlock result = toolResultSentInCall(2);
-        assertEquals("t1", result.toolUseId());
-        assertEquals(ToolResultStatus.SUCCESS, result.status());
-        String json = result.content().getFirst().text();
-        assertTrue(json.contains("Ann") && json.contains("France"), "the model gets the full rows: " + json);
+        ToolExecutionResultMessage result = model.toolResultSentInCall(2);
+        assertEquals("t1", result.id());
+        assertEquals("run_query", result.toolName());
+        assertTrue(result.text().contains("Ann") && result.text().contains("France"), "the model gets the full rows: " + result.text());
     }
 
     @Test
     void aRejectedQueryGoesBackAsAnErrorAndTheModelCorrectsIt() {
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                runQuery(null, "t1", "DELETE FROM customer"),
-                runQuery(null, "t2", "SELECT name FROM customer"),
+        script(toolCall(null, "t1", "run_query", runQueryArguments("DELETE FROM customer")),
+                toolCall(null, "t2", "run_query", runQueryArguments("SELECT name FROM customer")),
                 answer("Done."));
         when(executor.execute(eq(1L), anyString())).thenReturn(List.of(Map.of("name", "Ann")));
 
@@ -172,16 +146,13 @@ class CompanyAgenticAssistantServiceTest {
         assertNotNull(response.steps().getFirst().error());
         verify(executor, times(1)).execute(eq(1L), anyString());   // the DELETE never reached the database
 
-        ToolResultBlock rejection = toolResultSentInCall(2);
-        assertEquals(ToolResultStatus.ERROR, rejection.status());
-        assertTrue(rejection.content().getFirst().text().contains("SELECT"));
+        assertTrue(model.toolResultSentInCall(2).text().contains("SELECT"));
         assertEquals("SELECT name FROM customer", response.sql());
     }
 
     @Test
     void aDatabaseFailureIsReportedBackAsFailed() {
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                runQuery(null, "t1", "SELECT nope FROM customer"),
+        script(toolCall(null, "t1", "run_query", runQueryArguments("SELECT nope FROM customer")),
                 answer("Sorry, that column does not exist."));
         when(executor.execute(eq(1L), anyString())).thenThrow(new GeneratedQueryException("The query failed to run: column nope"));
 
@@ -189,74 +160,149 @@ class CompanyAgenticAssistantServiceTest {
 
         assertEquals("failed", response.steps().getFirst().status());
         assertNull(response.sql());
-        ToolResultBlock result = toolResultSentInCall(2);
-        assertEquals(ToolResultStatus.ERROR, result.status());
-        assertTrue(result.content().getFirst().text().contains("column nope"));
+        assertTrue(model.toolResultSentInCall(2).text().contains("column nope"));
     }
 
     @Test
     void unknownToolAndMissingSqlAreRejected() {
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                toolUse(null, "t1", "drop_everything", Document.mapBuilder().build()),
-                toolUse(null, "t2", "run_query", Document.mapBuilder().build()),
+        script(toolCall(null, "t1", "drop_everything", "{}"),
+                toolCall(null, "t2", "run_query", "{}"),
                 answer("ok"));
 
         CompanyAgentResponse response = service.ask(1L, "q");
 
         assertEquals(List.of("rejected", "rejected"), response.steps().stream().map(s -> s.status()).toList());
+        assertEquals("drop_everything", response.steps().get(0).tool());
         assertTrue(response.steps().get(0).error().contains("Unknown tool"));
         assertTrue(response.steps().get(1).error().contains("missing"));
         verifyNoInteractions(executor);
     }
 
     @Test
-    void stopsWhenTheModelKeepsCallingToolsPastTheStepLimit() {
-        service = newService(3, 20000);
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt()))
-                .thenReturn(runQuery(null, "t", "SELECT name FROM customer"));
-        when(executor.execute(eq(1L), anyString())).thenReturn(List.of());
+    void argumentsThatCannotBeReadGoBackToTheModelAsARejection() {
+        script(toolCall(null, "t1", "draft_emails", "{\"drafts\": \"not a list\"}"),
+                answer("Let me try again."));
 
-        assertThrows(GeneratedQueryException.class, () -> service.ask(1L, "q"));
+        CompanyAgentResponse response = service.ask(1L, "Greet everyone");
 
-        verify(bedrock, times(3)).converse(anyString(), anyString(), any(), any(), anyInt());
+        assertEquals("rejected", response.steps().getFirst().status());
+        assertFalse(model.toolResultSentInCall(2).text().isBlank());
+        assertEquals("Let me try again.", response.answer());
+        verifyNoInteractions(emailBatchService);
     }
 
     @Test
-    void abnormalStopReasonOrEmptyAnswerIsABedrockError() {
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt()))
-                .thenReturn(response(StopReason.MAX_TOKENS, ContentBlock.fromText("cut off")));
+    void aRoundWithTwoToolCallsGivesTwoStepsAndTheNoteBelongsToTheFirst() {
+        script(toolCalls("Two lookups.",
+                        request("t1", "run_query", runQueryArguments("SELECT name FROM customer")),
+                        request("t2", "run_query", runQueryArguments("SELECT country FROM customer"))),
+                answer("Both done."));
+        when(executor.execute(eq(1L), anyString())).thenReturn(List.of(Map.of("name", "Ann")));
+
+        CompanyAgentResponse response = service.ask(1L, "q");
+
+        assertEquals(List.of(1, 1), response.steps().stream().map(s -> s.round()).toList());
+        assertEquals("Two lookups.", response.steps().get(0).note());
+        assertNull(response.steps().get(1).note());
+    }
+
+    @Test
+    void stopsWhenTheModelKeepsCallingToolsPastTheStepLimit() {
+        scriptWithLimits(3, 20000, toolCall(null, "t", "run_query", runQueryArguments("SELECT name FROM customer")));
+        when(executor.execute(eq(1L), anyString())).thenReturn(List.of());
+
+        var ex = assertThrows(GeneratedQueryException.class, () -> service.ask(1L, "q"));
+
+        assertTrue(ex.getMessage().contains("3"));
+        assertTrue(model.requests().size() <= 4, "the loop must stop at the limit, saw " + model.requests().size() + " calls");
+        verify(sessions, never()).record(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void anAnswerWithinTheStepLimitIsAccepted() {
+        scriptWithLimits(3, 20000,
+                toolCall(null, "t1", "run_query", runQueryArguments("SELECT name FROM customer")),
+                toolCall(null, "t2", "run_query", runQueryArguments("SELECT name FROM customer")),
+                answer("Third call answers."));
+        when(executor.execute(eq(1L), anyString())).thenReturn(List.of());
+
+        assertEquals("Third call answers.", service.ask(1L, "q").answer());
+    }
+
+    @Test
+    void abnormalFinishReasonOrEmptyAnswerIsABedrockError() {
+        script(cutOff("cut off"));
         assertThrows(BedrockService.BedrockException.class, () -> service.ask(1L, "q"));
 
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("  "));
+        script(answer("  "));
         assertThrows(BedrockService.BedrockException.class, () -> service.ask(1L, "q"));
+    }
+
+    @Test
+    void aModelFailureIsABedrockErrorAndStoresNothingInTheSession() {
+        script(new RateLimitException("slow down"));
+
+        assertThrows(BedrockService.BedrockException.class, () -> service.ask(1L, "Hi"));
+
+        verify(sessions, never()).record(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void anUnexpectedToolFailureStopsTheRequestAndIsNotShownToTheModel() {
+        script(toolCall(null, "t1", "run_query", runQueryArguments("SELECT name FROM customer")),
+                answer("never reached"));
+        when(executor.execute(eq(1L), anyString())).thenThrow(new IllegalStateException("db password is hunter2"));
+
+        var ex = assertThrows(RuntimeException.class, () -> service.ask(1L, "q"));
+
+        assertFalse(ex instanceof BedrockService.BedrockException);
+        assertEquals(1, model.requests().size(), "the model must not see the failure");
+        verify(sessions, never()).record(any(), any(), any(), any(), any());
     }
 
     @Test
     void unknownCompanyIs404AndTheModelIsNotCalled() {
+        script(answer("never reached"));
         when(repository.existsByCompanyId(9L)).thenReturn(false);
 
         var ex = assertThrows(ResponseStatusException.class, () -> service.ask(9L, "q"));
 
         assertEquals(404, ex.getStatusCode().value());
-        verifyNoInteractions(bedrock, executor, sessions);
+        assertTrue(model.requests().isEmpty());
+        verifyNoInteractions(executor, sessions);
     }
 
     @Test
-    void usesTheAssistantModelAndOffersTheTool() {
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("hi"));
+    void offersTheThreeToolsAndTheSystemPrompt() {
+        script(answer("hi"));
 
         service.ask(1L, "q");
 
-        verify(bedrock).converse(eq("test-model"), anyString(), any(), org.mockito.ArgumentMatchers.argThat(
-                cfg -> cfg != null && cfg.tools().size() == 3
-                        && "run_query".equals(cfg.tools().get(0).toolSpec().name())
-                        && "draft_emails".equals(cfg.tools().get(1).toolSpec().name())
-                        && "remove_drafts".equals(cfg.tools().get(2).toolSpec().name())), eq(2048));
+        var request = model.requests().getFirst();
+        assertEquals(Set.of("run_query", "draft_emails", "remove_drafts"),
+                request.toolSpecifications().stream().map(ToolSpecification::name).collect(Collectors.toSet()));
+        SystemMessage system = (SystemMessage) request.messages().getFirst();
+        assertEquals(service.systemPrompt(), system.text());
+    }
+
+    @Test
+    void theToolSchemasTellTheModelWhatToSend() {
+        script(answer("hi"));
+
+        service.ask(1L, "q");
+
+        Map<String, ToolSpecification> byName = model.requests().getFirst().toolSpecifications().stream()
+                .collect(Collectors.toMap(ToolSpecification::name, spec -> spec));
+        assertTrue(byName.get("run_query").parameters().properties().containsKey("sql"));
+        assertTrue(byName.get("draft_emails").parameters().properties().containsKey("drafts"));
+        assertTrue(byName.get("remove_drafts").parameters().properties().containsKey("customerIds"));
+        assertFalse(byName.get("run_query").parameters().properties().containsKey("parameters"),
+                "the run is passed to the tool, never offered to the model");
     }
 
     @Test
     void aLargeResultIsCutToFitTheSizeLimit() {
-        service = newService(4, 300);
+        scriptWithLimits(4, 300, answer("unused"));
         List<Map<String, Object>> rows = new ArrayList<>();
         for (int i = 0; i < 50; i++) {
             rows.add(row("Customer number " + i, "Netherlands"));
@@ -271,6 +317,8 @@ class CompanyAgenticAssistantServiceTest {
 
     @Test
     void aSmallResultIsSentWhole() {
+        script(answer("unused"));
+
         String json = runQueryTool.rowsJson(List.of(row("Ann", "France")));
 
         assertTrue(json.contains("\"truncated\":false"));
@@ -279,6 +327,8 @@ class CompanyAgenticAssistantServiceTest {
 
     @Test
     void thePromptDescribesTheTableTheToolAndTheSafetyRules() {
+        script(answer("unused"));
+
         String prompt = service.systemPrompt();
 
         assertTrue(prompt.contains("CREATE TABLE customer"));
@@ -290,6 +340,8 @@ class CompanyAgenticAssistantServiceTest {
 
     @Test
     void thePromptCarriesTheEmailRulesTheCapAndTheCountryLanguageTable() {
+        script(answer("unused"));
+
         String prompt = service.systemPrompt();
 
         assertTrue(prompt.contains("draft_emails"));
@@ -308,19 +360,16 @@ class CompanyAgenticAssistantServiceTest {
                 .email(name.toLowerCase().replace(" ", ".") + "@example.com").country(country).build();
     }
 
-    private static ConverseResponse draftEmails(String id, long customerId, String subject, String body) {
-        Document draft = Document.mapBuilder().putNumber("customerId", customerId)
-                .putString("subject", subject).putString("body", body).build();
-        return toolUse(null, id, "draft_emails", Document.mapBuilder()
-                .putList("drafts", List.of(draft)).build());
+    private static ChatResponse draftEmails(String id, long customerId, String subject, String body) {
+        return toolCall(null, id, "draft_emails", json(Map.of("drafts", List.of(
+                Map.of("customerId", customerId, "subject", subject, "body", body)))));
     }
 
     @Test
     void draftsAreStoredAsABatchAwaitingApprovalAndNothingIsSent() {
         Customer ann = customer(7, "Ann Dupont", "France");
         when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(ann));
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                draftEmails("t1", 7, "Joyeux anniversaire", "Chère Ann, ..."),
+        script(draftEmails("t1", 7, "Joyeux anniversaire", "Chère Ann, ..."),
                 answer("One draft is ready for review."));
         EmailBatchResponse batch = new EmailBatchResponse(UUID.randomUUID(), 1L, "DRAFTED", null, null, 1, 0, List.of());
         when(emailBatchService.createBatch(eq(1L), eq("Greet Ann"), any())).thenReturn(batch);
@@ -342,17 +391,30 @@ class CompanyAgenticAssistantServiceTest {
     }
 
     @Test
+    void aCustomerIdSentAsTextIsStillUnderstood() {
+        when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(customer(7, "Ann Dupont", "France")));
+        script(toolCall(null, "t1", "draft_emails",
+                        "{\"drafts\":[{\"customerId\":\"7\",\"subject\":\"Hi\",\"body\":\"Hello\"}]}"),
+                answer("Drafted."));
+        when(emailBatchService.createBatch(eq(1L), anyString(), any())).thenReturn(
+                new EmailBatchResponse(UUID.randomUUID(), 1L, "DRAFTED", null, null, 1, 0, List.of()));
+
+        CompanyAgentResponse response = service.ask(1L, "Greet Ann");
+
+        assertEquals("ok", response.steps().getFirst().status());
+    }
+
+    @Test
     void aRejectedDraftGoesBackToTheModelAndNoBatchIsStoredWhenNothingWasAccepted() {
         when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of());
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                draftEmails("t1", 99, "Hi", "Hello"),
+        script(draftEmails("t1", 99, "Hi", "Hello"),
                 answer("I could not find that customer."));
 
         CompanyAgentResponse response = service.ask(1L, "Greet customer 99");
 
         assertEquals("rejected", response.steps().getFirst().status());
         assertNull(response.emailBatch());
-        assertEquals(ToolResultStatus.ERROR, toolResultSentInCall(2).status());
+        assertTrue(model.toolResultSentInCall(2).text().contains("no customer with this id in the company"));
         verifyNoInteractions(emailBatchService);
     }
 
@@ -363,21 +425,15 @@ class CompanyAgenticAssistantServiceTest {
                 "French", subject, "body of " + name);
     }
 
-    private static ConverseResponse removeDrafts(String id, long... customerIds) {
-        List<Document> ids = new ArrayList<>();
-        for (long customerId : customerIds) {
-            ids.add(Document.fromNumber(customerId));
-        }
-        return toolUse(null, id, "remove_drafts", Document.mapBuilder().putList("customerIds", ids).build());
+    private static ChatResponse removeDrafts(String id, long... customerIds) {
+        return toolCall(null, id, "remove_drafts", json(Map.of("customerIds", Arrays.stream(customerIds).boxed().toList())));
     }
 
     private UUID sessionWithOpenDrafts(PendingDraft... drafts) {
         UUID sessionId = UUID.randomUUID();
         UUID batchId = UUID.randomUUID();
         when(sessions.open(eq(1L), eq(sessionId))).thenReturn(new AgentSessionService.SessionState(sessionId,
-                List.of(Message.builder().role(ConversationRole.USER).content(ContentBlock.fromText("first question")).build(),
-                        Message.builder().role(ConversationRole.ASSISTANT).content(ContentBlock.fromText("first answer")).build()),
-                batchId));
+                List.of(UserMessage.from("first question"), AiMessage.from("first answer")), batchId));
         when(emailBatchService.openDrafts(1L, batchId)).thenReturn(List.of(drafts));
         when(emailBatchService.get(eq(1L), eq(batchId))).thenReturn(
                 new EmailBatchResponse(batchId, 1L, "DRAFTED", null, null, drafts.length, 0, List.of()));
@@ -392,17 +448,16 @@ class CompanyAgenticAssistantServiceTest {
     void aFollowUpReplaysTheHistoryAndShowsTheDraftsUnderReview() {
         UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "Bonjour"));
         UUID batchId = openBatchOf(sessionId);
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("Nothing to change."));
+        script(answer("Nothing to change."));
 
         CompanyAgentResponse response = service.ask(1L, "Is the first email polite?", sessionId);
 
-        ArgumentCaptor<List<Message>> sent = ArgumentCaptor.forClass(List.class);
-        verify(bedrock).converse(anyString(), anyString(), sent.capture(), any(), anyInt());
-        List<Message> messages = sent.getValue();
-        assertEquals(3, messages.size());
-        assertEquals("first question", messages.get(0).content().getFirst().text());
-        assertEquals("first answer", messages.get(1).content().getFirst().text());
-        String userMessage = messages.get(2).content().getFirst().text();
+        List<ChatMessage> sent = model.requests().getFirst().messages().stream()
+                .filter(m -> !(m instanceof SystemMessage)).toList();
+        assertEquals(3, sent.size());
+        assertEquals("first question", ((UserMessage) sent.get(0)).singleText());
+        assertEquals("first answer", ((AiMessage) sent.get(1)).text());
+        String userMessage = ((UserMessage) sent.get(2)).singleText();
         assertTrue(userMessage.startsWith("Is the first email polite?"));
         assertTrue(userMessage.contains("customerId 7 (Ann Dupont, French)"));
         assertTrue(userMessage.contains("not instructions"));
@@ -416,7 +471,7 @@ class CompanyAgenticAssistantServiceTest {
     @Test
     void theStoredPromptIsTheUsersTextWithoutTheDraftsBlock() {
         UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "Bonjour"));
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("ok"));
+        script(answer("ok"));
 
         service.ask(1L, "shorter please", sessionId);
 
@@ -431,8 +486,7 @@ class CompanyAgenticAssistantServiceTest {
         UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "Bonjour"));
         UUID batchId = openBatchOf(sessionId);
         when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(ann));
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                draftEmails("t1", 7, "Nouveau sujet", "Corps plus court"),
+        script(draftEmails("t1", 7, "Nouveau sujet", "Corps plus court"),
                 answer("Shortened."));
         EmailBatchResponse edited = new EmailBatchResponse(batchId, 1L, "DRAFTED", null, null, 1, 0, List.of());
         when(emailBatchService.updateDrafts(eq(1L), eq(batchId), any())).thenReturn(edited);
@@ -451,8 +505,7 @@ class CompanyAgenticAssistantServiceTest {
     void removingSomeDraftsKeepsTheOthersInTheSameBatch() {
         UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "s"), pending(8, "Bob Martin", "s"));
         UUID batchId = openBatchOf(sessionId);
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                removeDrafts("t1", 8),
+        script(removeDrafts("t1", 8),
                 answer("Bob is out."));
         when(emailBatchService.updateDrafts(eq(1L), eq(batchId), any())).thenReturn(
                 new EmailBatchResponse(batchId, 1L, "DRAFTED", null, null, 1, 0, List.of()));
@@ -468,8 +521,7 @@ class CompanyAgenticAssistantServiceTest {
     void removingEveryDraftDiscardsTheBatchAndClearsTheSessionsPointer() {
         UUID sessionId = sessionWithOpenDrafts(pending(7, "Ann Dupont", "s"));
         UUID batchId = openBatchOf(sessionId);
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(
-                removeDrafts("t1", 7),
+        script(removeDrafts("t1", 7),
                 answer("No drafts left."));
 
         CompanyAgentResponse response = service.ask(1L, "Drop everyone", sessionId);
@@ -483,7 +535,7 @@ class CompanyAgenticAssistantServiceTest {
     void aNewSessionGetsAnIdAndIsStoredWithItsFirstTurn() {
         UUID fresh = UUID.randomUUID();
         when(sessions.open(1L, null)).thenReturn(new AgentSessionService.SessionState(fresh, List.of(), null));
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt())).thenReturn(answer("Hello."));
+        script(answer("Hello."));
 
         CompanyAgentResponse response = service.ask(1L, "Hi");
 
@@ -492,23 +544,14 @@ class CompanyAgenticAssistantServiceTest {
     }
 
     @Test
-    void aFailedRunStoresNothingInTheSession() {
-        when(bedrock.converse(anyString(), anyString(), any(), any(), anyInt()))
-                .thenThrow(new BedrockService.BedrockException("down", null));
-
-        assertThrows(BedrockService.BedrockException.class, () -> service.ask(1L, "Hi"));
-
-        verify(sessions, never()).record(any(), any(), any(), any(), any());
-    }
-
-    @Test
     void anUnknownSessionStopsBeforeTheModelIsCalled() {
+        script(answer("never reached"));
         UUID unknown = UUID.randomUUID();
-        when(sessions.open(1L, unknown)).thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "no session"));
+        when(sessions.open(1L, unknown)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "no session"));
 
         var ex = assertThrows(ResponseStatusException.class, () -> service.ask(1L, "Hi", unknown));
 
         assertEquals(404, ex.getStatusCode().value());
-        verifyNoInteractions(bedrock);
+        assertTrue(model.requests().isEmpty());
     }
 }
