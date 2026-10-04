@@ -30,10 +30,10 @@ public class BirthdayGreetingController {
     @Operation(
             summary = "Write a birthday greeting for a customer",
             description = """
-                    Writes a birthday greeting with the Bedrock model, in the main language of the customer's
-                    country and with a formality that follows the customer's age. The service picks the language and
-                    the tone; the model never receives the customer's name, email, phone, country or exact age.
-                    It writes a placeholder that the service replaces with the customer's name.
+                    Writes a birthday greeting with the Bedrock model. The model receives the customer's name and
+                    country and chooses the language (the main language of the country) and the grammatical gender.
+                    The service sets the tone from the customer's age and sends only that band, not the exact age.
+                    Email and phone are not sent.
                     """
     )
     @ApiResponses({
