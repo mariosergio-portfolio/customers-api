@@ -26,9 +26,9 @@ import java.util.Map;
  */
 @Component
 @Slf4j
-class RunQueryTool implements AgentTool {
+public class RunQueryTool implements AgentTool {
 
-    static final String NAME = "run_query";
+    public static final String NAME = "run_query";
 
     private final CompanyQueryValidator validator;
     private final CompanyQueryExecutor  executor;
@@ -36,7 +36,7 @@ class RunQueryTool implements AgentTool {
     private final int                   maxResultChars;
     private final Tool                  specification;
 
-    RunQueryTool(CompanyQueryValidator validator,
+    public RunQueryTool(CompanyQueryValidator validator,
                  CompanyQueryExecutor executor,
                  ObjectMapper objectMapper,
                  @Value("${aws.bedrock.agent-max-result-chars:20000}") int maxResultChars,
@@ -84,7 +84,7 @@ class RunQueryTool implements AgentTool {
     }
 
     /** {"rowCount": n, "rows": [...]}, with rows dropped from the end if it would not fit the size limit. */
-    String rowsJson(List<Map<String, Object>> rows) {
+    public String rowsJson(List<Map<String, Object>> rows) {
         int keep = rows.size();
         while (true) {
             String json = json(Map.of("rowCount", rows.size(), "returnedRows", keep,
