@@ -6,10 +6,17 @@ REST API for querying customers. Part of the [Mario Sérgio portfolio](https://g
 - **Explore the AWS AI and Machine Learning Services**
 - **Amazon Polly (text to speech)**
 - **Amazon Bedrock (natural language processing)**
+- **AI agents with LangChain4j: a lead agent with tools, and a reviewer agent that checks its work**
 - **SQL Full Text Search with PostgreSQL**
 
-## Architecture
+## Features
 
+- **Customer search** — list customers by company, with optional case-insensitive partial-text filters on `name` and `country`, and sorting by `id` or `name`.
+- **Name pronunciation** — synthesizes "`{name} from {country}`" as MP3 audio via [AWS Polly](https://aws.amazon.com/polly/) Neural TTS, auto-selecting a native voice for the requested language.
+- **Natural-language features** — ask about a company's customers in plain language, in two ways (a one-shot question, or an agent that can also write emails), plus birthday greetings. See [Natural-language features](#natural-language-features).
+- **OpenAPI / Swagger UI** documentation out of the box.
+
+### System overview
 
 The frontend calls the Customers API, which queries PostgreSQL for customer data via `CustomerService`/`CustomerRepository`, and calls AWS Polly on demand via `PronounceService` to synthesize name pronunciations.
 ```
@@ -46,38 +53,137 @@ The frontend calls the Customers API, which queries PostgreSQL for customer data
 
 <img src="docs/customers-api-architecture.gif" alt="Customers API AWS architecture" width="600">
 
----
-
-### REST API
+#### REST API
 
 <img src="README_UI_0.png" alt="README_UI_0.png" width="600">
 
-### Customers FRONT UI 
+#### Customers FRONT UI
 
 *The Customers case study page (from [portfolio-frontend](https://github.com/mariosergio30/portfolio-frontend)) consuming this API — search, filter, and pronounce customer names.*
 
 <img src="README_UI_1.png" alt="Customers page UI" width="600">
 
 
+## Natural-language features
 
-## Features
+All of them run on Amazon Bedrock, and each one trades power for exposure of customer data:
 
-- **Customer search** — list customers by company, with optional case-insensitive partial-text filters on `name` and `country`, and sorting by `id` or `name`.
-- **Name pronunciation** — synthesizes "`{name} from {country}`" as MP3 audio via [AWS Polly](https://aws.amazon.com/polly/) Neural TTS, auto-selecting a native voice for the requested language.
-- **Company AI agent** — ask about a company's customers in plain language, or ask it to write emails to them (see below).
-- **OpenAPI / Swagger UI** documentation out of the box.
+| Feature | Endpoint | Model calls | Customer data sent to the model | Can it act? |
+|---|---|---|---|---|
+| Birthday greeting | `POST /api/customers/{customerPk}/birthday-greetings` | 1 | name and country only | no |
+| [One-shot question](#ask--one-shot-question) | `POST /api/companies/{companyId}/ask` | 1 | none (table structure only) | no, read-only |
+| [Agents](#agentic-ask--agents) | `POST /api/companies/{companyId}/agentic-ask` | several, in a loop | **full rows, including names, emails and phones** | drafts emails; a person approves before anything is sent |
 
-## Natural-language customer assistant (agent)
+### /ask — one-shot question
 
-Ask in plain language and act on the result, e.g. *"write a thank-you email for the 20 oldest customers, in the main language of each customer's country"*. `POST /api/companies/{companyId}/agentic-ask` runs a tool-use agent on Amazon Bedrock (`aws.bedrock.assistant-model-id`, a model that supports tool use), built with [LangChain4j](https://docs.langchain4j.dev/): the tools are `@Tool` methods, and its AI Services run the model-and-tools loop (limited by `aws.bedrock.agent-max-steps`). The model decides which tools to call and how often:
+Ask a question such as *"how many customers are in France?"*. The model is called **once**. It sees only the table structure and the question, and replies with a SQL query plus a short message. The API validates the query and runs it itself, so no customer data reaches the model.
 
-1. **Understand and search** — the `run_query` tool. The model writes one read-only `SELECT` at a time (filters, ordering, `LIMIT`); the service validates it, scopes it to the company, and returns the rows. It reads the answer, retries rejected queries, and never touches data outside the company.
-2. **Act** — the `draft_emails` tool. The model writes one email per customer (subject and body) in the main language of the customer's country. The language comes from a fixed country → language lookup ([`CountryLanguage`](src/main/java/com/mycompany/customersapi/domain/CountryLanguage.java)), unknown countries fall back to English. The recipient address always comes from the customer record, never from the model.
-   **Check (second agent)** — after drafting, the agent calls `review_drafts`, which hands the new or changed drafts to a separate **reviewer agent** ([`service/agent/review`](src/main/java/com/mycompany/customersapi/service/agent/review)). The reviewer has no tools and no memory: it sees the user's request and the drafts, and returns a verdict per draft (language, personal data, unrequested promises, quality, safety). The first agent fixes what is flagged with `draft_emails` and reviews again, up to `assistant.review.max-rounds` (default 2) times per request. The response's `review` field lists the issues still open and whether every draft was reviewed; if the reviewer is unavailable the drafts are still stored, marked as not reviewed. The review is advice only: it never blocks or sends.
-3. **Review and approve** — the agent only drafts. The drafts are stored as an email batch and returned in `emailBatch`; nothing is sent. A person reviews them (`GET .../email-batches/{batchId}`) and approves them with `POST .../email-batches/{batchId}/approve`.
-4. **Deliver** — approving sends the emails through [Amazon SES](https://aws.amazon.com/ses/). A batch is capped at `assistant.email.max-recipients` recipients (default 25), expires after `assistant.email.batch-ttl-hours` (default 24) and cannot be sent twice. An email SES refuses is marked `FAILED` and approving again retries only those.
+```
+                        +----------------------------+
+                        |     portfolio-frontend     |
+                        +----------------------------+
+                                       |
+                                       | POST /api/companies/{companyId}/ask   { prompt }
+                                       v
+                        +----------------------------+
+                        | CompanyAssistantController |
+                        +----------------------------+
+                                       |
+                                       v
+        +----------------------------------------------------------------+
+        |                    CompanyAssistantService                     |
+        |                                                                |
+        |  1. CustomerRepository.existsByCompanyId()    -> 404 if none   |
+        |  2. BedrockService.ask(table DDL + prompt)    ---------+       |
+        |  3. parse the reply { message, sql }          <--------+       |
+        |  4. CompanyQueryValidator: one plain SELECT,                   |
+        |     allowed functions only                    -> 422 if not    |
+        |  5. scope: WITH customer AS (this company's rows,              |
+        |     visible columns only) <validated SQL>                      |
+        |  6. read-only transaction, timeout, row cap   ---------+       |
+        +----------------------------------------------------------------+
+                         |                                      |
+                         v                                      v
+              +----------------------+               +--------------------+
+              |    Amazon Bedrock    |               |     PostgreSQL     |
+              | (sees the structure  |               |  (CUSTOMER table)  |
+              |  and the question    |               +--------------------+
+              |  only, no rows)      |
+              +----------------------+
 
-5. **Refine** — the response carries a `sessionId`. Send it back with the next request to continue the conversation: earlier prompts and answers are replayed to the model, and the drafts under review are shown to it as data. It can then rewrite a draft (`draft_emails` with the same customer id replaces it), drop customers (`remove_drafts`), or answer questions about the drafts, always editing the same batch ("drop the customers from Norway", "make the first email shorter"). A session belongs to one company and expires after `assistant.session.ttl-hours` without use (`410`); an unknown session is `404`. Only prompts and final answers are remembered, not tool calls, and a session is stored once a request succeeds.
+                                       |
+                                       v
+                      { message, sql, rowCount, rows }
+```
+
+Three layers keep it safe, and none depends on the model behaving: the validator (a single `SELECT` over the `customer` table), the company-scoped CTE (the query cannot see other companies or hidden columns), and a read-only transaction with a statement timeout and a row limit. The `message` is written before the model sees any data, so it describes what is returned and never states results.
+
+### /agentic-ask — agents
+
+Ask in plain language and act on the result, e.g. *"what is the oldest customer?"* or *"write a thank-you email for the 20 oldest customers, in the main language of each customer's country"*. `POST /api/companies/{companyId}/agentic-ask` runs **two agents** on Amazon Bedrock (`aws.bedrock.assistant-model-id`, a model that supports tool use), built with [LangChain4j](https://docs.langchain4j.dev/) AI Services:
+
+- **Agent 1 — the lead agent** (`LeadAgent`) answers the question. It runs a loop: the model decides which tools to call and how often, LangChain4j runs them and feeds the results back, until the model writes its answer (limited by `aws.bedrock.agent-max-steps`). Most questions only need `run_query`; the email tools are used only when the prompt asks for emails.
+- **Agent 2 — the reviewer** (`DraftReviewer`) checks the lead agent's email drafts. It has no tools and no memory, makes one model call, and is reached only through the lead agent's `review_drafts` tool.
+
+```
+POST /agentic-ask   { prompt, sessionId? }
+      |
+      v
+ service (CompanyAgenticAssistantService)
+      |  checks the company, opens the session, builds the run state
+      v
++-------------------------------------------------------------+
+| AGENT 1 (LeadAgent)                                         |
+|                                                             |
+|   model call <----------------------------+                 |
+|       |                                   |                 |
+|       +- answer -------------------> done |                 |
+|       |                                   |                 |
+|       +- tool calls                       |                 |
+|            |                              |                 |
+|            +- run_query --> database      | results go back |
+|            +- draft_emails                | to the model    |
+|            +- remove_drafts               |                 |
+|            +- review_drafts               |                 |
+|                  |                        |                 |
+|                  v                        |                 |
+|        +--------------------------------+ |                 |
+|        | AGENT 2 (DraftReviewer)        | |                 |
+|        | one model call, no tools,      |-+                 |
+|        | returns a verdict per draft    |                   |
+|        +--------------------------------+                   |
++-------------------------------------------------------------+
+      |
+      v
+ service saves the draft batch and the session, returns the response
+ { sessionId, answer, sql, rowCount, rows, steps, emailBatch, review }
+```
+
+The lead agent's tools:
+
+| Tool | What it does |
+|---|---|
+| `run_query` | Runs one read-only `SELECT` over the company's customers. The SQL goes through the same validator, company scope, timeout and row cap as `/ask`. Rejected or failed queries go back to the model so it can fix them. |
+| `draft_emails` | Stores one email per customer (subject and body) in the main language of the customer's country, from a fixed lookup ([`CountryLanguage`](src/main/java/com/mycompany/customersapi/domain/CountryLanguage.java); unknown countries fall back to English). The recipient address always comes from the customer record, never from the model. Drafting a customer again replaces the earlier draft. |
+| `remove_drafts` | Drops customers from the batch under review. |
+| `review_drafts` | Hands the new or changed drafts to the reviewer and returns its verdicts. |
+
+Where the code lives:
+
+| Package | Role |
+|---|---|
+| [`service/agent/lead`](src/main/java/com/mycompany/customersapi/service/agent/lead) | Agent 1: `LeadAgent` (the entry point), `LeadAgentFactory` (model, prompt, tools, error policy), `AgentFailureMapper`, `AgentRun` (state of one request) |
+| [`service/agent/lead/tools`](src/main/java/com/mycompany/customersapi/service/agent/lead/tools) | The four `@Tool` classes |
+| [`service/agent/review`](src/main/java/com/mycompany/customersapi/service/agent/review) | Agent 2: `DraftReviewer` and the reviewer's AI Service |
+
+How a request flows:
+
+1. **Understand and search** — the lead agent reads the real rows with `run_query`, retries rejected queries, and never touches data outside the company.
+2. **Act** — when the prompt asks for emails, it drafts them with `draft_emails`.
+3. **Check (second agent)** — after drafting, the lead agent calls `review_drafts`. The reviewer sees the user's request and the drafts, and returns a verdict per draft (language, personal data, unrequested promises, quality, safety). The lead agent fixes what is flagged and reviews again, up to `assistant.review.max-rounds` (default 2) times per request. The response's `review` field lists the issues still open and whether every draft was reviewed; if the reviewer is unavailable the drafts are still stored, marked as not reviewed. The review is advice only: it never blocks or sends.
+4. **Approve** — the agents only draft. The drafts are stored as an email batch and returned in `emailBatch`; nothing is sent. A person reviews them (`GET .../email-batches/{batchId}`) and approves them with `POST .../email-batches/{batchId}/approve`.
+5. **Deliver** — approving sends the emails through [Amazon SES](https://aws.amazon.com/ses/). A batch is capped at `assistant.email.max-recipients` recipients (default 25), expires after `assistant.email.batch-ttl-hours` (default 24) and cannot be sent twice. An email SES refuses is marked `FAILED` and approving again retries only those.
+6. **Refine** — the response carries a `sessionId`. Send it back with the next request to continue the conversation: earlier prompts and answers are replayed to the model, and the drafts under review are shown to it as data. It can then rewrite a draft (`draft_emails` with the same customer id replaces it), drop customers (`remove_drafts`), or answer questions about the drafts, always editing the same batch ("drop the customers from Norway", "make the first email shorter"). A session belongs to one company and expires after `assistant.session.ttl-hours` without use (`410`); an unknown session is `404`. Only prompts and final answers are remembered, not tool calls, and a session is stored once a request succeeds.
 
 Because only the approve endpoint sends, text injected through stored customer data can at most add drafts for customers of the same company, within the cap. Sending needs a verified sender: set `AWS_SES_FROM_ADDRESS`, otherwise approval answers `503`. While the SES account is in the sandbox, recipients must be verified as well.
 
@@ -115,6 +221,7 @@ Not done yet: a `birthDate` per customer (so "the oldest customers" currently me
 - Lombok
 - springdoc-openapi (Swagger UI)
 - AWS SDK v2 (Polly, Bedrock Runtime, SES v2)
+- LangChain4j (AI Services and tools for the agents, Bedrock chat model)
 
 ## API endpoints
 
@@ -124,7 +231,7 @@ Not done yet: a `birthDate` per customer (so "the oldest customers" currently me
 | `GET` | `/api/customers/{customerPk}/pronounce` | Synthesizes the customer's name via AWS Polly. Optional `language` query param (BCP‑47, e.g. `en-US`, `pt-BR`), defaults to `en-US`. Returns `audio/mpeg`. |
 | `POST` | `/api/customers/{customerPk}/birthday-greetings` | Writes a birthday greeting with Amazon Bedrock. The model receives the customer's name and country and chooses the language (main language of the country) and the grammatical gender; the service sets a formality band from the age and does not send the exact age, email or phone. Returns `{ message, tone }`. |
 | `POST` | `/api/companies/{companyId}/ask` | Question about a company's customers in plain language. One Bedrock call: the model sees only the table structure and writes a SQL query plus a short message; the API validates the query and runs it read-only for the company. No customer data goes to the model. Returns `{ message, sql, rowCount, rows }`. |
-| `POST` | `/api/companies/{companyId}/agentic-ask` | Same question, answered by a tool-use agent (needs a tool-capable model, `aws.bedrock.assistant-model-id`, e.g. Claude). The model runs read-only SQL as often as it needs, reads the full rows each query returns (**customer data, including names, emails and phones, is sent to the model**), fixes rejected queries and writes the answer. When the prompt asks for emails it also drafts them in the language of each customer's country (stored, not sent). Body `{ prompt, sessionId? }`: send the `sessionId` of an earlier response to continue that conversation and refine its drafts. Returns `{ sessionId, answer, sql, rowCount, rows, steps, emailBatch }`, where `steps` lists every tool call in this request and `emailBatch` is the batch under review in the conversation (null if none). |
+| `POST` | `/api/companies/{companyId}/agentic-ask` | Same question, answered by the two agents described [above](#agentic-ask--agents) (needs a tool-capable model, `aws.bedrock.assistant-model-id`, e.g. Claude). The lead agent runs read-only SQL as often as it needs, reads the full rows each query returns (**customer data, including names, emails and phones, is sent to the model**), fixes rejected queries and writes the answer. When the prompt asks for emails it also drafts them in the language of each customer's country (stored, not sent), and the reviewer agent checks them. Body `{ prompt, sessionId? }`: send the `sessionId` of an earlier response to continue that conversation and refine its drafts. Returns `{ sessionId, answer, sql, rowCount, rows, steps, emailBatch, review }`, where `steps` lists every tool call in this request (including `review_drafts`), `emailBatch` is the batch under review in the conversation (null if none) and `review` is what the reviewer found in the drafts this request produced (null if it produced none). |
 | `GET` | `/api/companies/{companyId}/email-batches/{batchId}` | Reviews a batch of drafted emails and the status of each. Sends nothing. |
 | `POST` | `/api/companies/{companyId}/email-batches/{batchId}/approve` | Approves the batch and sends its emails through Amazon SES (the only call that sends). `409` if already sent, `410` if expired, `503` if no sender address is configured. |
 | `POST` | `/api/bedrock/ask` | Sends a prompt (and optional `systemPrompt`) to the Bedrock model. Returns `{ answer }`. |
@@ -143,10 +250,15 @@ Configuration lives in [application.yml](src/main/resources/application.yml) and
 | `DB_NAME` | `postgres` | PostgreSQL database name. |
 | `AWS_REGION` | `us-east-1` | AWS region for Polly. |
 | `AWS_POLLY_VOICE_ID` | `Joanna` | Default Polly voice (used as a fallback per language). |
+| `AWS_BEDROCK_ASSISTANT_MODEL_ID` | `amazon.nova-pro-v1:0` | Model of the agents; it must support tool use. |
+| `AWS_BEDROCK_AGENT_MAX_STEPS` | `10` | Model calls the lead agent may make per request. |
+| `AWS_BEDROCK_AGENT_MAX_TOKENS` | `4096` | Output budget of one model call, enough for several drafted emails. |
+| `AWS_BEDROCK_AGENT_MAX_RESULT_CHARS` | `20000` | Size of one `run_query` result sent back to the model. |
 | `AWS_SES_FROM_ADDRESS` | *(empty)* | Verified SES sender for approved emails. Empty = emails can be drafted but not sent. |
 | `AWS_SES_REGION` | `AWS_REGION` | AWS region for SES. |
 | `ASSISTANT_EMAIL_MAX_RECIPIENTS` | `25` | Recipients per email batch. |
 | `ASSISTANT_EMAIL_BATCH_TTL_HOURS` | `24` | Hours a drafted batch can still be approved. |
+| `ASSISTANT_REVIEW_MAX_ROUNDS` | `2` | Times the lead agent may call the reviewer per request. |
 | `ASSISTANT_SESSION_TTL_HOURS` | `24` | Hours without use after which an agent session expires. |
 | `ASSISTANT_SESSION_MAX_TURNS` | `10` | Prompt/answer pairs of a session replayed to the model. |
 
@@ -170,10 +282,18 @@ To use the `/pronounce` endpoint, make sure valid AWS credentials with Polly acc
 
 ```
 src/main/java/com/mycompany/customersapi/
-├── config/       # CORS, Jackson, OpenAPI, global exception handling
+├── config/        # CORS, Jackson, OpenAPI, global exception handling, agent chat model
 ├── controller/    # REST endpoints
 ├── domain/        # JPA entities
 ├── dto/           # Request/response payloads
 ├── repository/    # Spring Data JPA repositories
-└── service/       # Business logic, Polly TTS synthesis
+└── service/       # Business logic
+    ├── agent/
+    │   ├── lead/      # Agent 1: LeadAgent, its factory, run state, failure mapping
+    │   │   └── tools/ # run_query, draft_emails, remove_drafts, review_drafts
+    │   └── review/    # Agent 2: DraftReviewer
+    ├── bedrock/       # Bedrock client
+    ├── email/         # Email batches and SES delivery
+    ├── query/         # SQL validation and read-only execution
+    └── speech/        # Polly TTS synthesis
 ```
