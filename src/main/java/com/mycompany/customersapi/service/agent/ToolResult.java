@@ -9,7 +9,7 @@ package com.mycompany.customersapi.service.agent;
  * @param count   rows returned or drafts stored; null when nothing was produced
  * @param error   the error message, null when ok
  */
-record ToolResult(String status, String content, String sql, Integer count, String error) {
+public record ToolResult(String status, String content, String sql, Integer count, String error) {
 
     static ToolResult ok(String content, String sql, int count) {
         return new ToolResult("ok", content, sql, count, null);

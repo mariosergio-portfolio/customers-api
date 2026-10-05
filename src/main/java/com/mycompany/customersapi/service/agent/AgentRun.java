@@ -17,7 +17,7 @@ import java.util.Map;
  * It reaches the tools as an invocation parameter, so the model never sees it and cannot choose the company.
  * A run belongs to one request and its tool calls run one after another, so it needs no locking.
  */
-final class AgentRun {
+public final class AgentRun {
 
     private static final String PARAMETER = "run";
 
@@ -34,13 +34,13 @@ final class AgentRun {
         this(companyId, List.of());
     }
 
-    AgentRun(Long companyId, Collection<PendingDraft> openDrafts) {
+    public AgentRun(Long companyId, Collection<PendingDraft> openDrafts) {
         this.companyId = companyId;
         openDrafts.forEach(d -> draftsByCustomerId.put(d.customerId(), d));
     }
 
     /** The parameters to pass to the assistant so that its tools can find this run. */
-    InvocationParameters asParameters() {
+    public InvocationParameters asParameters() {
         return InvocationParameters.from(PARAMETER, this);
     }
 
@@ -52,7 +52,7 @@ final class AgentRun {
         return run;
     }
 
-    Long companyId() {
+    public Long companyId() {
         return companyId;
     }
 
@@ -66,14 +66,14 @@ final class AgentRun {
      * Called after each tool call, including calls the tool never saw (unknown tool, arguments that could not
      * be read): those have no reported outcome, so the text sent back to the model is the refusal.
      */
-    void completeCall(ToolExecution execution) {
+    public void completeCall(ToolExecution execution) {
         ToolResult outcome = pendingOutcome != null ? pendingOutcome : ToolResult.rejected(execution.result(), null);
         outcomesByCallId.put(execution.request().id(), outcome);
         pendingOutcome = null;
     }
 
     /** What the tool call with this id did; a call that was never completed counts as rejected. */
-    ToolResult outcomeOf(String callId) {
+    public ToolResult outcomeOf(String callId) {
         return outcomesByCallId.getOrDefault(callId, ToolResult.rejected("The tool call did not run", null));
     }
 
@@ -82,11 +82,11 @@ final class AgentRun {
         this.lastRows = rows;
     }
 
-    String lastSql() {
+    public String lastSql() {
         return lastSql;
     }
 
-    List<Map<String, Object>> lastRows() {
+    public List<Map<String, Object>> lastRows() {
         return lastRows;
     }
 

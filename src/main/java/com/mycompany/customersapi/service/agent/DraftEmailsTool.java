@@ -31,12 +31,12 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-class DraftEmailsTool implements AgentTool {
+public class DraftEmailsTool implements AgentTool {
 
-    static final String NAME = "draft_emails";
+    public static final String NAME = "draft_emails";
 
     /** Drafts accepted per call, so one call's output stays within the model's token budget. */
-    static final int MAX_DRAFTS_PER_CALL = 10;
+    public static final int MAX_DRAFTS_PER_CALL = 10;
     static final int MAX_SUBJECT_CHARS   = 200;
     static final int MAX_BODY_CHARS      = 5000;
 
@@ -51,7 +51,7 @@ class DraftEmailsTool implements AgentTool {
     private final ObjectMapper       objectMapper;
     private final int                maxRecipients;
 
-    DraftEmailsTool(CustomerRepository customerRepository,
+    public DraftEmailsTool(CustomerRepository customerRepository,
                     ObjectMapper objectMapper,
                     @Value("${assistant.email.max-recipients:25}") int maxRecipients) {
         this.customerRepository = customerRepository;

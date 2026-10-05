@@ -20,7 +20,7 @@ import java.util.Map;
 @Component
 public class CompanyQueryExecutor {
 
-    /** Columns the model may read. Keep in sync with {@link com.mycompany.customersapi.service.agent.CompanyAgenticAssistantService#SCHEMA}. */
+    /** Columns the model may read. Keep in sync with {@link com.mycompany.customersapi.service.CompanyAgenticAssistantService#SCHEMA}. */
     static final String VISIBLE_COLUMNS = "id, name, email, age, country, phone, created_at";
 
     private final String             schema;

@@ -1,10 +1,18 @@
-package com.mycompany.customersapi.service.agent;
+package com.mycompany.customersapi.service;
 
 import com.mycompany.customersapi.domain.CountryLanguage;
 import com.mycompany.customersapi.dto.AgentStep;
 import com.mycompany.customersapi.dto.CompanyAgentResponse;
 import com.mycompany.customersapi.dto.EmailBatchResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
+import com.mycompany.customersapi.service.agent.AgentRun;
+import com.mycompany.customersapi.service.agent.AgentSessionService;
+import com.mycompany.customersapi.service.agent.AgentTool;
+import com.mycompany.customersapi.service.agent.DraftBatchCoordinator;
+import com.mycompany.customersapi.service.agent.DraftEmailsTool;
+import com.mycompany.customersapi.service.agent.RemoveDraftsTool;
+import com.mycompany.customersapi.service.agent.RunQueryTool;
+import com.mycompany.customersapi.service.agent.ToolResult;
 import com.mycompany.customersapi.service.bedrock.BedrockService;
 import com.mycompany.customersapi.service.email.PendingDraft;
 import com.mycompany.customersapi.service.query.CompanyQueryValidator;
@@ -120,7 +128,7 @@ public class CompanyAgenticAssistantService {
         UUID openBatchId = openDrafts.isEmpty() ? null : session.batchId();
 
         AgentRun run = new AgentRun(companyId, openDrafts);
-        Result<String> result = chat(run, session.history(), prompt + draftBatches.describe(openDrafts));
+        Result<String> result = orchestrateChat(run, session.history(), prompt + draftBatches.describe(openDrafts));
 
         String answer = answerOf(result);
         List<AgentStep> steps = stepsOf(run, result);
@@ -138,7 +146,7 @@ public class CompanyAgenticAssistantService {
      * Runs the agent loop for one request. The assistant is built per request because its chat memory holds
      * this session's history and nothing else; building it only reads the tools' annotations.
      */
-    private Result<String> chat(AgentRun run, List<ChatMessage> history, String message) {
+    private Result<String> orchestrateChat(AgentRun run, List<ChatMessage> history, String message) {
         MessageWindowChatMemory memory = MessageWindowChatMemory.withMaxMessages(Integer.MAX_VALUE);
         history.forEach(memory::add);
 

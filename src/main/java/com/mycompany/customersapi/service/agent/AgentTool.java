@@ -8,5 +8,5 @@ package com.mycompany.customersapi.service.agent;
  * {@link AgentRun#report} and returns the text the model can react to. The run comes in as an
  * {@link dev.langchain4j.invocation.InvocationParameters} argument, which the model does not see.
  */
-interface AgentTool {
+public interface AgentTool {
 }
