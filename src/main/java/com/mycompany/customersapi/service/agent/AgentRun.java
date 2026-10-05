@@ -11,7 +11,7 @@ import java.util.Map;
  * State of one agent run: the company it works for and what its tools have produced so far. A run can start
  * with the drafts of the session's open batch, which the model may then replace or remove.
  */
-public final class AgentRun {
+final class AgentRun {
 
     private final Long companyId;
     private final Map<Long, PendingDraft> draftsByCustomerId = new LinkedHashMap<>();
@@ -20,11 +20,11 @@ public final class AgentRun {
     private String lastSql;
     private List<Map<String, Object>> lastRows = List.of();
 
-    public AgentRun(Long companyId) {
+    AgentRun(Long companyId) {
         this(companyId, List.of());
     }
 
-    public AgentRun(Long companyId, Collection<PendingDraft> openDrafts) {
+    AgentRun(Long companyId, Collection<PendingDraft> openDrafts) {
         this.companyId = companyId;
         openDrafts.forEach(d -> draftsByCustomerId.put(d.customerId(), d));
     }
@@ -38,11 +38,11 @@ public final class AgentRun {
         this.lastRows = rows;
     }
 
-    public String lastSql() {
+    String lastSql() {
         return lastSql;
     }
 
-    public List<Map<String, Object>> lastRows() {
+    List<Map<String, Object>> lastRows() {
         return lastRows;
     }
 

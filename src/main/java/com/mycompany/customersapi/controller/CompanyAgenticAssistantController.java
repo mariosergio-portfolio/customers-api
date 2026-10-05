@@ -3,7 +3,7 @@ package com.mycompany.customersapi.controller;
 import com.mycompany.customersapi.config.GlobalExceptionHandler;
 import com.mycompany.customersapi.dto.AgentAskRequest;
 import com.mycompany.customersapi.dto.CompanyAgentResponse;
-import com.mycompany.customersapi.service.CompanyAgenticAssistantService;
+import com.mycompany.customersapi.service.agent.CompanyAgenticAssistantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
