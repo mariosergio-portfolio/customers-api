@@ -1,5 +1,7 @@
-package com.mycompany.customersapi.service.agent;
+package com.mycompany.customersapi.service.agent.lead.tools;
 
+import com.mycompany.customersapi.service.agent.lead.ToolResult;
+import com.mycompany.customersapi.service.agent.lead.AgentRun;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.customersapi.domain.CountryLanguage;

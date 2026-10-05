@@ -1,5 +1,7 @@
-package com.mycompany.customersapi.service.agent;
+package com.mycompany.customersapi.service.agent.lead.tools;
 
+import com.mycompany.customersapi.service.agent.lead.ToolResult;
+import com.mycompany.customersapi.service.agent.lead.AgentRun;
 import com.mycompany.customersapi.service.query.CompanyQueryExecutor;
 import com.mycompany.customersapi.service.query.CompanyQueryValidator;
 import com.mycompany.customersapi.service.query.GeneratedQueryException;

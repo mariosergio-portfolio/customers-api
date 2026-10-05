@@ -6,10 +6,14 @@ import com.mycompany.customersapi.dto.CompanyAgentResponse;
 import com.mycompany.customersapi.dto.EmailBatchResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
 import com.mycompany.customersapi.service.agent.AgentSessionService;
-import com.mycompany.customersapi.service.agent.DraftBatchCoordinator;
-import com.mycompany.customersapi.service.agent.DraftEmailsTool;
-import com.mycompany.customersapi.service.agent.RemoveDraftsTool;
-import com.mycompany.customersapi.service.agent.RunQueryTool;
+import com.mycompany.customersapi.service.agent.lead.LeadAgent;
+import com.mycompany.customersapi.service.agent.lead.LeadAgentFactory;
+import com.mycompany.customersapi.service.agent.lead.DraftBatchCoordinator;
+import com.mycompany.customersapi.service.agent.lead.tools.DraftEmailsTool;
+import com.mycompany.customersapi.service.agent.lead.tools.RemoveDraftsTool;
+import com.mycompany.customersapi.service.agent.lead.tools.ReviewDraftsTool;
+import com.mycompany.customersapi.service.agent.lead.tools.RunQueryTool;
+import com.mycompany.customersapi.service.agent.review.DraftReviewer;
 import com.mycompany.customersapi.service.agent.ScriptedChatModel;
 import com.mycompany.customersapi.service.bedrock.BedrockService;
 import com.mycompany.customersapi.service.email.EmailBatchService;
@@ -61,6 +65,8 @@ class CompanyAgenticAssistantServiceTest {
     private AgentSessionService sessions;
     private RunQueryTool runQueryTool;
     private ScriptedChatModel model;
+    private ScriptedChatModel reviewerModel;
+    private LeadAgent agent;
     private CompanyAgenticAssistantService service;
 
     @BeforeEach
@@ -81,9 +87,14 @@ class CompanyAgenticAssistantServiceTest {
     private ScriptedChatModel scriptWithLimits(int maxSteps, int maxResultChars, Object... replies) {
         model = new ScriptedChatModel(replies);
         ObjectMapper mapper = new ObjectMapper();
+        if (reviewerModel == null) {
+            reviewerModel = new ScriptedChatModel(answer("{\"verdicts\": []}"));
+        }
         runQueryTool = new RunQueryTool(new CompanyQueryValidator(), executor, mapper, maxResultChars);
-        service = new CompanyAgenticAssistantService(repository, model, sessions, new DraftBatchCoordinator(emailBatchService),
-                List.of(runQueryTool, new DraftEmailsTool(repository, mapper, 25), new RemoveDraftsTool(mapper)), maxSteps, 25);
+        agent = new LeadAgent(new LeadAgentFactory(model,
+                List.of(runQueryTool, new DraftEmailsTool(repository, mapper, 25), new RemoveDraftsTool(mapper),
+                        new ReviewDraftsTool(new DraftReviewer(reviewerModel), mapper, 2)), maxSteps, 25, 2));
+        service = new CompanyAgenticAssistantService(repository, agent, sessions, new DraftBatchCoordinator(emailBatchService));
         return model;
     }
 
@@ -279,16 +290,16 @@ class CompanyAgenticAssistantServiceTest {
     }
 
     @Test
-    void offersTheThreeToolsAndTheSystemPrompt() {
+    void offersTheFourToolsAndTheSystemPrompt() {
         script(answer("hi"));
 
         service.ask(1L, "q");
 
         var request = model.requests().getFirst();
-        assertEquals(Set.of("run_query", "draft_emails", "remove_drafts"),
+        assertEquals(Set.of("run_query", "draft_emails", "remove_drafts", "review_drafts"),
                 request.toolSpecifications().stream().map(ToolSpecification::name).collect(Collectors.toSet()));
         SystemMessage system = (SystemMessage) request.messages().getFirst();
-        assertEquals(service.systemPrompt(), system.text());
+        assertEquals(agent.systemPrompt(), system.text());
     }
 
     @Test
@@ -335,7 +346,7 @@ class CompanyAgenticAssistantServiceTest {
     void thePromptDescribesTheTableTheToolAndTheSafetyRules() {
         script(answer("unused"));
 
-        String prompt = service.systemPrompt();
+        String prompt = agent.systemPrompt();
 
         assertTrue(prompt.contains("CREATE TABLE customer"));
         assertTrue(prompt.contains("run_query"));
@@ -348,7 +359,7 @@ class CompanyAgenticAssistantServiceTest {
     void thePromptCarriesTheEmailRulesTheCapAndTheCountryLanguageTable() {
         script(answer("unused"));
 
-        String prompt = service.systemPrompt();
+        String prompt = agent.systemPrompt();
 
         assertTrue(prompt.contains("draft_emails"));
         assertTrue(prompt.contains("At most 25 recipients per batch"));
@@ -394,6 +405,111 @@ class CompanyAgenticAssistantServiceTest {
         assertEquals("French", draft.language());
         assertEquals("Joyeux anniversaire", draft.subject());
         verify(emailBatchService, never()).approve(any(), any());
+    }
+
+    // ── the reviewer agent ───────────────────────────────────────────────────
+
+    private static ChatResponse reviewDrafts(String id) {
+        return toolCall(null, id, "review_drafts", "{}");
+    }
+
+    private static ChatResponse reviewerSays(long customerId, boolean approved, String issue) {
+        Map<String, Object> verdict = new java.util.HashMap<>();
+        verdict.put("customerId", customerId);
+        verdict.put("approved", approved);
+        verdict.put("issue", issue);
+        return answer(json(Map.of("verdicts", List.of(verdict))));
+    }
+
+    @Test
+    void theReviewerFlagsADraftTheAgentFixesItAndTheReviewerApprovesTheNewVersion() {
+        Customer ann = customer(7, "Ann Dupont", "France");
+        when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(ann));
+        reviewerModel = new ScriptedChatModel(reviewerSays(7, false, "Written in English, expected French"),
+                reviewerSays(7, true, null));
+        scriptWithLimits(6, 20000,
+                draftEmails("t1", 7, "Happy birthday", "Dear Ann, happy birthday"), reviewDrafts("t2"),
+                draftEmails("t3", 7, "Joyeux anniversaire", "Chère Ann, joyeux anniversaire"), reviewDrafts("t4"),
+                answer("One draft is ready for review."));
+        when(emailBatchService.createBatch(eq(1L), eq("Greet Ann"), any()))
+                .thenReturn(new EmailBatchResponse(UUID.randomUUID(), 1L, "DRAFTED", null, null, 1, 0, List.of()));
+
+        CompanyAgentResponse response = service.ask(1L, "Greet Ann");
+
+        assertEquals(List.of("draft_emails", "review_drafts", "draft_emails", "review_drafts"),
+                response.steps().stream().map(s -> s.tool()).toList());
+        assertTrue(response.steps().stream().allMatch(s -> "ok".equals(s.status())));
+        assertEquals(2, response.review().reviews());
+        assertTrue(response.review().allDraftsReviewed());
+        assertTrue(response.review().openIssues().isEmpty());
+
+        // what the first agent was told, and what the second agent was shown
+        assertTrue(model.toolResultSentInCall(3).text().contains("Written in English, expected French"));
+        assertEquals(2, reviewerModel.requests().size());
+        var reviewerRequest = reviewerModel.requests().getFirst();
+        assertTrue(reviewerRequest.toolSpecifications() == null || reviewerRequest.toolSpecifications().isEmpty(),
+                "the reviewer has no tools");
+        String shown = ((UserMessage) reviewerRequest.messages().getLast()).singleText();
+        assertTrue(shown.contains("Greet Ann"));
+        assertTrue(shown.contains("expected language: French"));
+        assertTrue(shown.contains("Happy birthday"));
+        assertTrue(((UserMessage) reviewerModel.requests().getLast().messages().getLast()).singleText().contains("Joyeux anniversaire"));
+    }
+
+    @Test
+    void aDraftTheReviewerStillFlagsIsReportedAsAnOpenIssue() {
+        Customer ann = customer(7, "Ann Dupont", "France");
+        when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(ann));
+        reviewerModel = new ScriptedChatModel(reviewerSays(7, false, "Promises a discount nobody asked for"));
+        script(draftEmails("t1", 7, "Offre", "Chère Ann, 50% de remise"), reviewDrafts("t2"),
+                answer("The draft is ready, but the reviewer flagged it."));
+        when(emailBatchService.createBatch(eq(1L), any(), any()))
+                .thenReturn(new EmailBatchResponse(UUID.randomUUID(), 1L, "DRAFTED", null, null, 1, 0, List.of()));
+
+        CompanyAgentResponse response = service.ask(1L, "Greet Ann");
+
+        assertEquals(1, response.review().reviews());
+        assertTrue(response.review().allDraftsReviewed());
+        assertEquals(1, response.review().openIssues().size());
+        assertEquals(7L, response.review().openIssues().getFirst().customerId());
+        assertEquals("Promises a discount nobody asked for", response.review().openIssues().getFirst().issue());
+        assertNotNull(response.emailBatch(), "the review is advice: the batch is still stored for the person to decide");
+    }
+
+    @Test
+    void whenTheReviewerIsDownTheDraftsAreStillStoredAndShownAsNotReviewed() {
+        Customer ann = customer(7, "Ann Dupont", "France");
+        when(repository.findByCompanyIdAndIdIn(eq(1L), any())).thenReturn(List.of(ann));
+        reviewerModel = new ScriptedChatModel(new RateLimitException("slow down"));
+        script(draftEmails("t1", 7, "Bonjour", "Chère Ann"), reviewDrafts("t2"),
+                answer("The draft is ready, but it could not be reviewed."));
+        when(emailBatchService.createBatch(eq(1L), any(), any()))
+                .thenReturn(new EmailBatchResponse(UUID.randomUUID(), 1L, "DRAFTED", null, null, 1, 0, List.of()));
+
+        CompanyAgentResponse response = service.ask(1L, "Greet Ann");
+
+        assertEquals("failed", response.steps().get(1).status());
+        assertEquals(1, response.review().reviews());
+        assertFalse(response.review().allDraftsReviewed());
+        assertNotNull(response.emailBatch());
+    }
+
+    @Test
+    void aPromptWithTemplateBracesReachesTheModelAsPlainText() {
+        script(answer("ok"));
+
+        service.ask(1L, "Write {{name}} a note");
+
+        var last = model.requests().getFirst().messages().getLast();
+        assertTrue(((UserMessage) last).singleText().contains("Write {{name}} a note"));
+    }
+
+    @Test
+    void aRequestThatChangesNoDraftHasNoReviewSummary() {
+        script(answer("Nothing to draft."));
+
+        assertNull(service.ask(1L, "How many customers?").review());
+        assertTrue(reviewerModel.requests().isEmpty());
     }
 
     @Test

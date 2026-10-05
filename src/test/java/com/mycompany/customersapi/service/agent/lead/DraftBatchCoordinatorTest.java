@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service.agent;
+package com.mycompany.customersapi.service.agent.lead;
 
 import com.mycompany.customersapi.dto.EmailBatchResponse;
 import com.mycompany.customersapi.service.email.EmailBatchService;

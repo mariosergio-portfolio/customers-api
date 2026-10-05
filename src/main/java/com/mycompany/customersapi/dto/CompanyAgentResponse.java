@@ -16,5 +16,7 @@ public record CompanyAgentResponse(
         @Schema(description = "Rows of that query, keyed by column name") List<Map<String, Object>> rows,
         @Schema(description = "Every tool call the assistant made in this request, in order") List<AgentStep> steps,
         @Schema(description = "The batch of emails under review in this conversation, waiting for approval; null if there is none. Nothing is sent until the batch is approved.")
-        EmailBatchResponse emailBatch) {
+        EmailBatchResponse emailBatch,
+        @Schema(description = "What the reviewer agent found in the drafts this request produced; null if the request did not change any draft")
+        DraftReviewSummary review) {
 }

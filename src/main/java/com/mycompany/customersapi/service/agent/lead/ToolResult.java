@@ -1,4 +1,4 @@
-package com.mycompany.customersapi.service.agent;
+package com.mycompany.customersapi.service.agent.lead;
 
 /**
  * Outcome of one tool call.
@@ -11,19 +11,19 @@ package com.mycompany.customersapi.service.agent;
  */
 public record ToolResult(String status, String content, String sql, Integer count, String error) {
 
-    static ToolResult ok(String content, String sql, int count) {
+    public static ToolResult ok(String content, String sql, int count) {
         return new ToolResult("ok", content, sql, count, null);
     }
 
-    static ToolResult rejected(String error, String sql) {
+    public static ToolResult rejected(String error, String sql) {
         return new ToolResult("rejected", error, sql, null, error);
     }
 
-    static ToolResult failed(String error, String sql) {
+    public static ToolResult failed(String error, String sql) {
         return new ToolResult("failed", error, sql, null, error);
     }
 
-    boolean isOk() {
+    public boolean isOk() {
         return "ok".equals(status);
     }
 }

@@ -1,7 +1,7 @@
-package com.mycompany.customersapi.service.agent;
+package com.mycompany.customersapi.service.agent.lead.tools;
 
 /**
- * Marks a bean whose {@code @Tool} methods the company agent may call. The model chooses when to call them;
+ * Marks a bean whose {@code @Tool} methods the lead agent may call. The model chooses when to call them;
  * each tool validates its input and enforces its own limits, because nothing the model sends is trusted.
  *
  * A tool method never throws for bad model input: it reports a rejected or failed {@link ToolResult} through
