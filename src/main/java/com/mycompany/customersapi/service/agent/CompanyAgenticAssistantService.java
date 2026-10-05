@@ -1,18 +1,10 @@
-package com.mycompany.customersapi.service;
+package com.mycompany.customersapi.service.agent;
 
 import com.mycompany.customersapi.domain.CountryLanguage;
 import com.mycompany.customersapi.dto.AgentStep;
 import com.mycompany.customersapi.dto.CompanyAgentResponse;
 import com.mycompany.customersapi.dto.EmailBatchResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
-import com.mycompany.customersapi.service.agent.AgentRun;
-import com.mycompany.customersapi.service.agent.AgentSessionService;
-import com.mycompany.customersapi.service.agent.AgentTool;
-import com.mycompany.customersapi.service.agent.DraftBatchCoordinator;
-import com.mycompany.customersapi.service.agent.DraftEmailsTool;
-import com.mycompany.customersapi.service.agent.RemoveDraftsTool;
-import com.mycompany.customersapi.service.agent.RunQueryTool;
-import com.mycompany.customersapi.service.agent.ToolResult;
 import com.mycompany.customersapi.service.bedrock.BedrockService;
 import com.mycompany.customersapi.service.email.PendingDraft;
 import com.mycompany.customersapi.service.query.CompanyQueryValidator;
@@ -209,7 +201,7 @@ public class CompanyAgenticAssistantService {
 
     // ── prompt ───────────────────────────────────────────────────────────────
 
-    public String systemPrompt() {
+    String systemPrompt() {
         return """
                 You help with the customers of one company. You can read their data with the %s tool and write emails to
                 them with the %s tool. The data is in this table:

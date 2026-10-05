@@ -9,13 +9,13 @@ package com.mycompany.customersapi.service.agent;
  * @param count   rows returned or drafts stored; null when nothing was produced
  * @param error   the error message, null when ok
  */
-public record ToolResult(String status, String content, String sql, Integer count, String error) {
+record ToolResult(String status, String content, String sql, Integer count, String error) {
 
     static ToolResult ok(String content, String sql, int count) {
         return new ToolResult("ok", content, sql, count, null);
     }
 
-    public static ToolResult rejected(String error, String sql) {
+    static ToolResult rejected(String error, String sql) {
         return new ToolResult("rejected", error, sql, null, error);
     }
 
@@ -23,7 +23,7 @@ public record ToolResult(String status, String content, String sql, Integer coun
         return new ToolResult("failed", error, sql, null, error);
     }
 
-    public boolean isOk() {
+    boolean isOk() {
         return "ok".equals(status);
     }
 }

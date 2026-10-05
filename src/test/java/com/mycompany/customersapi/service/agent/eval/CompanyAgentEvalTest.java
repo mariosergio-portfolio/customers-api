@@ -4,7 +4,7 @@ import com.mycompany.customersapi.domain.CountryLanguage;
 import com.mycompany.customersapi.dto.CompanyAgentResponse;
 import com.mycompany.customersapi.dto.EmailBatchResponse;
 import com.mycompany.customersapi.dto.EmailDraftResponse;
-import com.mycompany.customersapi.service.CompanyAgenticAssistantService;
+import com.mycompany.customersapi.service.agent.CompanyAgenticAssistantService;
 import com.mycompany.customersapi.service.bedrock.BedrockService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
