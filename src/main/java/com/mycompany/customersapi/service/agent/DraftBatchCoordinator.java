@@ -14,19 +14,19 @@ import java.util.UUID;
  * them to the model, and after the run stores what the model changed in the same batch (or creates one).
  */
 @Component
-class DraftBatchCoordinator {
+public class DraftBatchCoordinator {
 
     private static final int MAX_BODY_CHARS_SHOWN = 1500;
     private static final int MAX_NAME_CHARS = 100;
 
     private final EmailBatchService emailBatchService;
 
-    DraftBatchCoordinator(EmailBatchService emailBatchService) {
+    public DraftBatchCoordinator(EmailBatchService emailBatchService) {
         this.emailBatchService = emailBatchService;
     }
 
     /** Drafts still waiting for approval in the session's batch; empty if there is none, or it was sent or expired. */
-    List<PendingDraft> openDrafts(Long companyId, UUID batchId) {
+    public List<PendingDraft> openDrafts(Long companyId, UUID batchId) {
         return batchId == null ? List.of() : emailBatchService.openDrafts(companyId, batchId);
     }
 
@@ -34,7 +34,7 @@ class DraftBatchCoordinator {
      * Text added to the user's message so the model knows what is under review. It is data (the model's own
      * earlier output, plus names from the database), so it goes in the user turn and says it is not instructions.
      */
-    String describe(Collection<PendingDraft> drafts) {
+    public String describe(Collection<PendingDraft> drafts) {
         if (drafts.isEmpty()) {
             return "";
         }
@@ -52,7 +52,7 @@ class DraftBatchCoordinator {
      *
      * @param openBatchId the batch the run started from, or null if the session had no open batch
      */
-    EmailBatchResponse save(Long companyId, UUID openBatchId, AgentRun run, String prompt) {
+    public EmailBatchResponse save(Long companyId, UUID openBatchId, AgentRun run, String prompt) {
         if (!run.draftsChanged()) {
             return openBatchId == null ? null : emailBatchService.get(companyId, openBatchId);
         }

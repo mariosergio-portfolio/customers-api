@@ -16,16 +16,16 @@ import java.util.Map;
 /** Lets the agent drop customers from the batch of drafts the user is reviewing. Nothing else is touched. */
 @Component
 @Slf4j
-class RemoveDraftsTool implements AgentTool {
+public class RemoveDraftsTool implements AgentTool {
 
-    static final String NAME = "remove_drafts";
+    public static final String NAME = "remove_drafts";
 
     private static final int MAX_IDS_PER_CALL = 100;
 
     private final ObjectMapper objectMapper;
     private final Tool specification;
 
-    RemoveDraftsTool(ObjectMapper objectMapper) {
+    public RemoveDraftsTool(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.specification = buildSpecification();
     }

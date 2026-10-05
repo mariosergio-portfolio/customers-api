@@ -1,10 +1,15 @@
-package com.mycompany.customersapi.service.agent;
+package com.mycompany.customersapi.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.customersapi.domain.Customer;
 import com.mycompany.customersapi.dto.CompanyAgentResponse;
 import com.mycompany.customersapi.dto.EmailBatchResponse;
 import com.mycompany.customersapi.repository.CustomerRepository;
+import com.mycompany.customersapi.service.agent.AgentSessionService;
+import com.mycompany.customersapi.service.agent.DraftBatchCoordinator;
+import com.mycompany.customersapi.service.agent.DraftEmailsTool;
+import com.mycompany.customersapi.service.agent.RemoveDraftsTool;
+import com.mycompany.customersapi.service.agent.RunQueryTool;
 import com.mycompany.customersapi.service.bedrock.BedrockService;
 import com.mycompany.customersapi.service.email.EmailBatchService;
 import com.mycompany.customersapi.service.email.PendingDraft;

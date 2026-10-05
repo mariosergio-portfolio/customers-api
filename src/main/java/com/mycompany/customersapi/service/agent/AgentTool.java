@@ -7,7 +7,7 @@ import software.amazon.awssdk.services.bedrockruntime.model.Tool;
  * One capability the company agent may use. The model chooses when to call it; the tool validates its
  * input and enforces its own limits, because nothing the model sends is trusted.
  */
-interface AgentTool {
+public interface AgentTool {
 
     String name();
 
